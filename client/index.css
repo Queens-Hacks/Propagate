@@ -1,5 +1,6 @@
-#art {
+#---art {
     width: 90%;
+    height: 1000px;
     margin: auto;
     margin-top: 20px;
     /*padding: 2px;*/
@@ -27,4 +28,6 @@
 
 body {
     background-color: #E6FFDB;
+    margin: 0px;
+    padding: 0px;
 }

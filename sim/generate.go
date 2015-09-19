@@ -24,6 +24,10 @@ func NewState(width, height int) *State {
 			if y > dirtHeight {
 				world[y][x] = &Tile{T: DirtTile}
 			}
+
+			if y == height-1 {
+				world[y][x] = &Tile{T: AirTile}
+			}
 		}
 
 		heightChange := rand.Float64()

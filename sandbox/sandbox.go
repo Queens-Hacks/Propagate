@@ -239,6 +239,32 @@ func addStrFunc(l *lua.State, name string, fn func(*lua.State, string) int) {
 	l.SetGlobal(name)
 }
 
+// blantently stolen from shopify's lua-go/libs.go
+func openSafeLibs(l *lua.State, preloaded ...lua.RegistryFunction) {
+	libs := []lua.RegistryFunction{
+		{"_G", lua.BaseOpen},
+		// {"package", PackageOpen},
+		// {"coroutine", CoroutineOpen},
+		{"table", lua.TableOpen},
+		// {"io", IOOpen},
+		// {"os", OSOpen},
+		{"string", lua.StringOpen},
+		// {"bit32", Bit32Open},
+		{"math", lua.MathOpen},
+		// {"debug", DebugOpen},
+	}
+	for _, lib := range libs {
+		lua.Require(l, lib.Name, lib.Function, true)
+		l.Pop(1)
+	}
+	lua.SubTable(l, lua.RegistryIndex, "_PRELOAD")
+	for _, lib := range preloaded {
+		l.PushGoFunction(lib.Function)
+		l.SetField(-2, lib.Name)
+	}
+	l.Pop(1)
+}
+
 func runNode(node internalNode) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -310,5 +336,6 @@ func runNode(node internalNode) {
 	})
 
 	lua.LoadString(l, node.program)
+	openSafeLibs(l)
 	watchLuaThread(l, &end_time)
 }

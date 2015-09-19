@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Queens-Hacks/Propagate/sim"
@@ -54,6 +53,6 @@ func updateState(s *sim.State, t sim.TileType) ([]byte, []byte) {
 	st := s.MarshalState()
 	df := s.MarshalDiff()
 	//fmt.Printf("total: %s", st)
-	fmt.Printf("diff: %s\n", df)
+	//fmt.Printf("diff: %s\n", df)
 	return st, df
 }

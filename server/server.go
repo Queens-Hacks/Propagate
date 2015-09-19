@@ -25,6 +25,7 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			worldData = data
 
 		case data := <-diff:
+			logrus.Info("sending diff to all clients")
 			for _, c := range conns {
 				c <- data
 			}
@@ -33,6 +34,7 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			go sendWorld(wd, worldData)
 			c := make(chan []byte)
 			conns = append(conns, c)
+			logrus.Info("starting diff loop")
 			sendDiffs(ctx, wd, c)
 			close(wd.done)
 		}
@@ -81,6 +83,7 @@ func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 	for {
 		select {
 		case data := <-diff:
+			logrus.Info("client being sent diff")
 			err := websocket.Message.Send(wd.ws, data)
 			if err != nil {
 				logrus.Error(err)

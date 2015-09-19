@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/Queens-Hacks/propagate/sim"
 	"github.com/Sirupsen/logrus"
-	"github.com/jpittis/propagate/sim"
 	"golang.org/x/net/context"
 )
 

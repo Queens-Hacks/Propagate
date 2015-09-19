@@ -23,12 +23,12 @@ while 1 do
     grow("up")
     split("right", "right")
   else
-    debug(meta())
+    -- debug(meta())
     grow("right")
   end
 end
 `, "Me")
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 100; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 

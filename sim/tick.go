@@ -40,7 +40,7 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 					spores = s.diff.Spores
 				}
 
-				s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}, spores}
+				s.diff = diff{[]tileDiff{}, map[string]*Species{}, []string{}, spores}
 				ch <- MarshalledState{ms, md}
 			}
 
@@ -65,7 +65,7 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 
 func boundsCheck(loc Location, mh int, mw int) Location {
 	// Can't move there, it's out of bounds!
-	if loc.Y < 0 || loc.Y > mh {
+	if loc.Y < 0 || loc.Y >= mh {
 		logrus.Info("newY out of bounds", loc.Y)
 		return loc
 	}
@@ -91,8 +91,6 @@ func (s *State) DirectionToLocation(loc Location, dir sandbox.Direction) Locatio
 		new.Y -= 1
 	} else if dir == sandbox.Down {
 		new.Y += 1
-	} else {
-		return loc
 	}
 
 	new = boundsCheck(new, s.Height(), s.Width())
@@ -105,19 +103,23 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 
 	if in.Operation == sandbox.Move {
 		new = s.DirectionToLocation(root.Loc, in.Dir)
-		s.SetTile(new, Tile{PlantTile, &plantInfo{
-			PlantId: root.PlantId,
-			Parent:  root.Loc,
+		s.SetTile(new, Tile{PlantTile, &extraTileInfo{
+			root.SpeciesId,
+			root.Loc,
+			false,
+			root.Plant,
 		}})
 	} else if in.Operation == sandbox.Split {
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
-		s.SetTile(tmp, Tile{PlantTile, &plantInfo{
-			PlantId: root.PlantId,
-			Parent:  root.Loc,
+		s.SetTile(tmp, Tile{PlantTile, &extraTileInfo{
+			root.SpeciesId,
+			root.Loc,
+			false,
+			root.Plant,
 		}})
 
 		// Add the new root for the new plant
-		s.AddPlant(tmp, root.PlantId, in.Meta)
+		s.AddGrowth(tmp, root.Plant, in.Meta)
 	} else if in.Operation == sandbox.Wait {
 		// that was easy
 		return

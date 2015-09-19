@@ -13,7 +13,7 @@ func NewState(width, height int) *State {
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			world[y][x] = &Tile{T: AirTile}
+			world[y][x] = &Tile{Type: AirTile}
 		}
 	}
 
@@ -23,7 +23,7 @@ func NewState(width, height int) *State {
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			if y > dirtHeight {
-				world[y][x] = &Tile{T: DirtTile}
+				world[y][x] = &Tile{Type: DirtTile}
 			}
 		}
 
@@ -44,7 +44,7 @@ func NewState(width, height int) *State {
 	}
 
 	return &State{
-		gameState{world, map[string]*Plant{}, []*growthRoot{}, 0},
-		diff{[]tileDiff{}, map[string]*Plant{}, []string{}, []spore{}},
+		gameState{world, map[string]*Species{}, []*Plant{}, []*growthRoot{}, 0},
+		diff{[]tileDiff{}, map[string]*Species{}, []string{}, []spore{}},
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
+	"github.com/Sirupsen/logrus"
 )
 
 type TileType int
@@ -16,9 +17,10 @@ const (
 )
 
 type growthRoot struct {
-	PlantId string
-	Loc     Location
-	node    *sandbox.Node
+	SpeciesId string
+	Loc       Location
+	Plant     *Plant
+	node      *sandbox.Node
 }
 
 type Location struct {
@@ -26,18 +28,25 @@ type Location struct {
 	Y int `json:"y"`
 }
 
-type plantInfo struct {
-	PlantId string   `json:"plantId"`
-	Parent  Location `json:"parent"`
-	IsRoot  bool     `json:"isRoot"`
+type extraTileInfo struct {
+	SpeciesId string   `json:"plantId"`
+	Parent    Location `json:"parent"`
+	IsRoot    bool     `json:"isRoot"`
+	Plant     *Plant
 }
 
 type Tile struct {
-	T     TileType   `json:"tileType"`
-	Plant *plantInfo `json:"plant"`
+	Type  TileType       `json:"tileType"`
+	Extra *extraTileInfo `json:"plant"`
 }
 
 type Plant struct {
+	Energy    int
+	SpeciesId string
+	tiles     map[*Tile]struct{}
+}
+
+type Species struct {
 	Color  int    `json:"color"`
 	Source string `json:"source"`
 	Author string `json:"author"`
@@ -45,8 +54,9 @@ type Plant struct {
 }
 
 type gameState struct {
-	World    [][]*Tile         `json:"world"`
-	Plants   map[string]*Plant `json:"plants"`
+	World    [][]*Tile           `json:"world"`
+	Species  map[string]*Species `json:"plants"`
+	plants   []*Plant
 	roots    []*growthRoot
 	maxPlant int
 }
@@ -57,8 +67,8 @@ type tileDiff struct {
 }
 
 type spore struct {
-	Location Location `json:"location"`
-	PlantId  string   `json:"plantId"`
+	Location  Location `json:"location"`
+	SpeciesId string   `json:"plantId"`
 }
 
 func (s *State) AddSpore(loc Location, plantId string) {
@@ -74,24 +84,26 @@ func (s *State) UpdateSpore(p *spore) bool {
 	p.Location.X = (p.Location.X + s.Width()) % s.Width()
 
 	t := s.GetTile(p.Location)
-	if t.T == DirtTile {
+	if t.Type == DirtTile {
 		p.Location.Y--
 		t = s.GetTile(p.Location)
 		// dont plant if not on air tile
-		if t.T != AirTile {
+		if t.Type != AirTile {
 			return true
 		}
-		s.AddPlant(p.Location, p.PlantId, "")
+
+		plant := s.AddPlant(p.SpeciesId)
+		s.AddGrowth(p.Location, plant, "")
 		return true
 	}
 	return false
 }
 
 type diff struct {
-	TileDiffs     []tileDiff        `json:"tileDiff"`
-	NewPlants     map[string]*Plant `json:"newPlants"`
-	RemovedPlants []string          `json:"removedPlants"`
-	Spores        []spore           `json:"spores"`
+	TileDiffs     []tileDiff          `json:"tileDiff"`
+	NewPlants     map[string]*Species `json:"newPlants"`
+	RemovedPlants []string            `json:"removedPlants"`
+	Spores        []spore             `json:"spores"`
 }
 
 func (d *diff) isEmpty() bool {
@@ -105,18 +117,18 @@ type State struct {
 
 // Records a reference to a plant, causing the plant to be kept in the structure
 func (s *State) plantAddRef(plantId string) {
-	s.GetPlant(plantId).refCnt++
+	s.GetSpecies(plantId).refCnt++
 }
 
 // Records a reference to a plant, causing the plant to be removed from the structure
 func (s *State) plantRelease(plantId string) {
-	plant := s.GetPlant(plantId)
+	plant := s.GetSpecies(plantId)
 	plant.refCnt--
 
 	// If the reference count has reached zero, remove the plant from the thing
 	if plant.refCnt <= 0 {
 		s.diff.RemovedPlants = append(s.diff.RemovedPlants, plantId)
-		delete(s.state.Plants, plantId)
+		delete(s.state.Species, plantId)
 	}
 }
 
@@ -128,19 +140,19 @@ func (s *State) Height() int {
 	return len(s.state.World)
 }
 
-func (s *State) GetPlant(plantId string) *Plant {
-	return s.state.Plants[plantId]
+func (s *State) GetSpecies(plantId string) *Species {
+	return s.state.Species[plantId]
 }
 
 // Adds a species to the stateAndDiff, and returns the string key for the plant
 // This plant is created with a refCnt of zero, but will not be dropped until
 // its reference count hits zero again.
 func (s *State) AddSpecies(color int, source string, author string) string {
-	p := Plant{color, source, author, 0}
+	p := Species{color, source, author, 0}
 	s.state.maxPlant += 1
 	key := fmt.Sprintf("%d", s.state.maxPlant)
 	s.diff.NewPlants[key] = &p
-	s.state.Plants[key] = &p
+	s.state.Species[key] = &p
 	return key
 }
 
@@ -149,24 +161,27 @@ func (s *State) GetTile(loc Location) *Tile {
 }
 
 /* collision detection */
-func reasonableSetTile(old Tile, new Tile) bool {
-	return old.T != PlantTile
+func reasonableSetTile(old *Tile, new *Tile) bool {
+	return old.Type != PlantTile
 }
 
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
+	logrus.Info(loc, new)
 	// Collision detection
-	if !reasonableSetTile(s.GetTile(loc), new) {
+	if !reasonableSetTile(s.GetTile(loc), &new) {
 		return
 	}
 
 	// Manage the addref and releases
-	if new.Plant != nil {
-		s.plantAddRef(new.Plant.PlantId)
-	}
 	old := s.GetTile(loc)
-	if old.Plant != nil {
-		s.plantRelease(old.Plant.PlantId)
+	if new.Extra != nil {
+		s.plantAddRef(new.Extra.SpeciesId)
+		new.Extra.Plant.tiles[old] = struct{}{}
+	}
+	if old.Extra != nil {
+		s.plantRelease(old.Extra.SpeciesId)
+		delete(new.Extra.Plant.tiles, old)
 	}
 
 	// Actually update the tile and record the tilediffs
@@ -174,23 +189,32 @@ func (s *State) SetTile(loc Location, new Tile) {
 	s.diff.TileDiffs = append(s.diff.TileDiffs, tileDiff{loc, new})
 }
 
-func (s *State) AddPlant(loc Location, id string, meta string) *growthRoot {
-	plant := s.GetPlant(id)
+func (s *State) AddPlant(speciesId string) *Plant {
+	plant := &Plant{100, speciesId, map[*Tile]struct{}{}}
+	s.state.plants = append(s.state.plants, plant)
+	return plant
+}
+
+func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
+	if plant == nil {
+		panic("crap")
+	}
+	species := s.GetSpecies(plant.SpeciesId)
 
 	// Create the sandbox node for the plant object
-	node := sandbox.AddNode(plant.Source, meta)
+	node := sandbox.AddNode(species.Source, meta)
 
 	// Create the root node for the object, and append it to the roots list
-	root := growthRoot{id, loc, node}
+	root := growthRoot{plant.SpeciesId, loc, plant, node}
 	s.state.roots = append(s.state.roots, &root)
 
 	isUnderground := false
-	if s.GetTile(loc).T == DirtTile {
+	if s.GetTile(loc).Type == DirtTile {
 		isUnderground = true
 	}
 
 	// Set the tile at the base of the plant to a plant tile
-	s.SetTile(loc, Tile{PlantTile, &plantInfo{id, loc, isUnderground}})
+	s.SetTile(loc, Tile{PlantTile, &extraTileInfo{plant.SpeciesId, loc, isUnderground, plant}})
 
 	// Return a reference to the root node we previously appended
 	return &root
@@ -200,7 +224,7 @@ func (s *State) lowerToDirt(loc *Location) {
 	var base int
 	for y := 0; y < s.Height(); y++ {
 		t := s.GetTile(Location{loc.X, y})
-		if t.T == DirtTile {
+		if t.Type == DirtTile {
 			base = y - 1
 			break
 		}

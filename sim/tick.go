@@ -108,6 +108,11 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 
 	if in.Operation == sandbox.Move {
 		new = s.DirectionToLocation(root.Loc, in.Dir)
+
+		if s.GetTile(new).Type == PlantTile {
+			return
+		}
+
 		s.SetTile(new, Tile{PlantTile, &extraTileInfo{
 			root.SpeciesId,
 			root.Loc,
@@ -116,6 +121,11 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		}})
 	} else if in.Operation == sandbox.Split {
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
+
+		if s.GetTile(tmp).Type == PlantTile {
+			return
+		}
+
 		s.SetTile(tmp, Tile{PlantTile, &extraTileInfo{
 			root.SpeciesId,
 			root.Loc,

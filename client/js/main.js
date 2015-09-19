@@ -9,7 +9,12 @@ var ctx = canvas.getContext('2d');
 var sx = canvas.width / 50;
 var sy = canvas.height / 50;
 
-var colorMap = [30, 210];
+// var colorMap = [30, 210, 160];
+var colorMap = [husl.toHex(30, 50, 50),
+    husl.toHex(210, 50, 50),
+    husl.toHex(160, 70, 70)
+]
+
 var firstFrame = true;
 
 function render(world) {
@@ -25,14 +30,15 @@ function render(world) {
 function renderDelta(delta) {
     tiles = delta['tileDiff'];
     for (var i = 0; i < tiles.length; i++) {
-    	tiles[i]['tile']['tileType'] = Math.round(Math.random());
+        // tiles[i]['tile']['tileType'] = Math.round(Math.random() * 2);
+        console.log(tiles[i]['tile']['tileType']);
         drawTile(tiles[i]['loc']['x'], tiles[i]['loc']['y'], tiles[i]['tile']['tileType']);
 
     }
 }
 
 function drawTile(x, y, type) {
-    ctx.fillStyle = husl.toHex(colorMap[type], 50, 50);
+    ctx.fillStyle = colorMap[type];
     ctx.fillRect(x * sx, y * sy, sx, sy);
 }
 
@@ -62,7 +68,7 @@ ws.onmessage = function(evt) {
             firstFrame = 0;
 
         } else {
-        	// console.log('renderingdelta')
+            // console.log('renderingdelta')
             // console.log(json['tileDiff'])
             renderDelta(json)
         }

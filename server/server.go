@@ -42,16 +42,18 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 type webSocketDone struct {
 	ws   *websocket.Conn
 	done chan struct{}
+	ctx  context.Context
 }
 
 func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
 	done := make(chan struct{})
-	newConns <- webSocketDone{ws, done}
+	ctx, cancel := context.WithCancel(context.Background())
+	newConns <- webSocketDone{ws, done, ctx}
 	var b []byte
 	err := websocket.Message.Receive(ws, b)
 	if err == io.EOF {
-		close(done)
+		cancel()
 	} else if err != nil {
 		logrus.Error(err)
 	}
@@ -87,7 +89,7 @@ func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 		case <-ctx.Done():
 			return
 
-		case <-wd.done:
+		case <-wd.ctx.Done():
 			return
 		}
 	}

@@ -13,8 +13,10 @@ var scale = 4;
 
 var state = {
     world: [],
-    plants: {}
+    plants: {},
 };
+
+var spores = [];
 
 var xViewport = 0;
 
@@ -28,9 +30,11 @@ function worldHeight() {
 }
 
 var colorMap = [
-    husl.toHex(30, 50, 50),
-    husl.toHex(210, 50, 50),
-    husl.toHex(160, 70, 70)
+    husl.toHex(30, 50, 50), //dirt
+    husl.toHex(210, 50, 50), //sky
+    husl.toHex(160, 70, 70), //plant default
+    husl.toHex(344, 70, 70) //spore
+
 ];
 
 var firstFrame = true;
@@ -44,6 +48,11 @@ function render() {
         for (var x = 0; x < state.world[y].length; x++) {
             drawTile(x, y, state.world[y][x]);
         }
+    }
+    for (var s = 0; s < spores.length; s++) {
+        drawTile(spores[s]['location']['x'], spores[s]['location']['y'], {
+            tileType: 3
+        })
     }
 
     display();
@@ -73,6 +82,8 @@ function applyDelta(delta) {
     delta.removedPlants.forEach(function(key) {
         delete state.plants[key];
     });
+
+    spores = delta['spores'];
 }
 
 function drawTile(x, y, tile) {
@@ -94,12 +105,12 @@ ws.onmessage = function(evt) {
 
         if (firstFrame) {
             state = json;
-
             onResize(); // We may have changed scale, so pretend we resized
             render(); // Render the screen
             firstFrame = false;
         } else {
             applyDelta(json);
+
             render();
         }
     });
@@ -117,6 +128,9 @@ window.onbeforeunload = function() {
 };
 
 function onResize() {
+    visCtx = visCan.getContext('2d');
+    hidCtx = hidCan.getContext('2d');
+
     hidCan.width = worldWidth() * scale;
     hidCan.height = worldHeight() * scale;
 
@@ -129,12 +143,14 @@ function onResize() {
 
 var runningResize = false;
 window.addEventListener("resize", function(e) {
-    if (runningResize) { return; }
+    if (runningResize) {
+        return;
+    }
     runningResize = true;
     requestAnimationFrame(onResize);
 });
 
-onResize();
+// onResize();
 
 var dir = 1;
 var lastX = -1;
@@ -144,7 +160,9 @@ visCan.addEventListener('mousedown', function(e) {
 });
 
 visCan.addEventListener('mousemove', function(e) {
-    if (lastX == -1) { return; }
+    if (lastX == -1) {
+        return;
+    }
     xViewport -= lastX - e.clientX;
 
     if (lastX - e.clientX < 0) {
@@ -172,4 +190,3 @@ window.setInterval(function() {
 visCan.addEventListener('mouseup', function(e) {
     lastX = -1;
 });
-

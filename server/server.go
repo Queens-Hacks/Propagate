@@ -35,6 +35,7 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			go sendWorld(wd, worldData)
 			c := make(chan []byte)
 			conns[nextId] = c
+			nextId++
 			id := nextId
 			logrus.Info("starting diff loop")
 			go func() {

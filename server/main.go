@@ -35,7 +35,7 @@ func main() {
 		total <- st
 		diff <- df
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 
 		st, df = updateState(&s, sim.DirtTile)
 		total <- st

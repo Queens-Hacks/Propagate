@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var newConns = make(chan *websocket.Conn)
+var newConns = make(chan webSocketDone)
 
 func New(ctx context.Context, total, diff chan []byte, port string) {
 
@@ -29,8 +29,8 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 				c <- data
 			}
 
-		case ws := <-newConns:
-			go sendWorld(ws, worldData)
+		case wd := <-newConns:
+			go sendWorld(wd, worldData)
 			// c := make(chan []byte)
 			// conns = append(conns, c)
 			// go sendDiffs(ctx, conn, c)
@@ -38,15 +38,16 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 	}
 }
 
+type webSocketDone struct {
+	ws *websocket.Conn
+	c  chan struct{}
+}
+
 func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
-	err := websocket.Message.Send(ws, []byte("hello"))
-	logrus.Infof("Attempted to send hello to websocket: %v", ws)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	newConns <- ws
+	done := make(chan struct{})
+	newConns <- webSocketDone{ws, done}
+	<-done
 }
 
 func handleConnections(port string) {
@@ -57,13 +58,14 @@ func handleConnections(port string) {
 	}
 }
 
-func sendWorld(ws *websocket.Conn, data []byte) {
-	err := websocket.Message.Send(ws, data)
-	logrus.Infof("Checking for error", ws)
+func sendWorld(wd webSocketDone, data []byte) {
+	err := websocket.Message.Send(wd.ws, data)
+	logrus.Infof("Checking for error", wd.ws)
 	if err != nil {
 		logrus.Error(err)
 	}
-	logrus.Infof("Sent world to conn: %v", ws)
+	logrus.Infof("Sent world to conn: %v", wd.ws)
+	close(wd.c)
 }
 
 func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {

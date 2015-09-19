@@ -1,5 +1,10 @@
 package sim
 
+import (
+	"github.com/Queens-Hacks/Propagate/sandbox"
+	"github.com/Sirupsen/logrus"
+)
+
 func mkWorldState(s *State, _ *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
 
@@ -39,7 +44,7 @@ func applyChanges(s *State, root *growthRoot, in sandbox.NewState) {
 		return
 	}
 
-	s.setTile(new, Tile{plantTile, &plantInfo{
+	s.setTile(new, Tile{PlantTile, &plantInfo{
 		PlantId: root.PlantId,
 		Parent:  root.Loc,
 		Age:     0,

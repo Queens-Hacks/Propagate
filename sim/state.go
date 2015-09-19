@@ -9,12 +9,12 @@ import (
 	"sync"
 )
 
-type tileType int
+type TileType int
 
 const (
-	dirtTile tileType = iota
-	airTile
-	plantTile
+	DirtTile TileType = iota
+	AirTile
+	PlantTile
 )
 
 type growthRoot struct {
@@ -35,7 +35,7 @@ type plantInfo struct {
 }
 
 type Tile struct {
-	T     tileType   `json:"tileType"`
+	T     TileType   `json:"tileType"`
 	Plant *plantInfo `json:"plant"`
 }
 
@@ -173,7 +173,7 @@ func (s *State) addPlant(loc Location, id string) *growthRoot {
 	s.state.roots = append(s.state.roots, &root)
 
 	// Set the tile at the base of the plant to a plant tile
-	s.setTile(loc, Tile{plantTile, &plantInfo{id, loc, 0}})
+	s.setTile(loc, Tile{PlantTile, &plantInfo{id, loc, 0}})
 
 	// Return a reference to the root node we previously appended
 	return &root

@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"encoding/json"
+	"sync"
+
 	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
-	"sync"
 )
 
 type TileType int
@@ -73,7 +74,7 @@ type State struct {
 }
 
 // Finalize the current state information
-func (s *State) finalize() {
+func (s *State) Finalize() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/Queens-Hacks/Propagate/sim"
 	"github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -29,15 +31,26 @@ func main() {
 	go New(ctx, total, diff, port)
 
 	for {
-		updateState(&s, sim.DirtTile)
-		updateState(&s, sim.AirTile)
+		st, df := updateState(&s, sim.DirtTile)
+		total <- st
+		diff <- df
+
+		time.Sleep(time.Second)
+
+		st, df = updateState(&s, sim.DirtTile)
+		total <- st
+		diff <- df
 	}
 }
 
-func updateState(s *sim.State, t sim.TileType) {
+func updateState(s *sim.State, t sim.TileType) ([]byte, []byte) {
 	for x := 40; x < 60; x++ {
 		for y := 20; y < 25; y++ {
 			s.SetTile(sim.Location{x, y}, sim.Tile{T: t})
 		}
 	}
+	s.Finalize()
+	st := s.MarshalState()
+	df := s.MarshalDiff()
+	return st, df
 }

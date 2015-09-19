@@ -5,9 +5,9 @@ import (
 )
 
 func MarshalGameState(s State) ([]byte, error) {
-	return json.Marshal(s.State)
+	return json.Marshal(s.state)
 }
 
 func MarshalDiff(s State) ([]byte, error) {
-	return json.Marshal(s.Diff)
+	return json.Marshal(s.diff)
 }

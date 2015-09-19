@@ -2,6 +2,7 @@ package sim
 
 import (
 	"fmt"
+
 	"github.com/Queens-Hacks/Propagate/sandbox"
 )
 
@@ -136,6 +137,8 @@ func (s *State) AddPlant(loc Location, id string) *growthRoot {
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)
 
+	s.lowerToDirt(&loc)
+
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{id, loc, node}
 	s.state.roots = append(s.state.roots, &root)
@@ -150,4 +153,16 @@ func (s *State) AddPlant(loc Location, id string) *growthRoot {
 
 	// Return a reference to the root node we previously appended
 	return &root
+}
+
+func (s *State) lowerToDirt(loc *Location) {
+	var base int
+	for y := 0; y < s.Height(); y++ {
+		t := s.GetTile(Location{loc.X, y})
+		if t.T == DirtTile {
+			base = y - 1
+			break
+		}
+	}
+	loc.Y = base
 }

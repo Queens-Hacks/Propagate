@@ -1,7 +1,6 @@
 package sandbox
 
 import (
-	"fmt"
 	"github.com/Shopify/go-lua"
 	"time"
 )

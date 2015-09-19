@@ -1,7 +1,11 @@
 package sim
 
-func SimpleState(x, y int) state {
-	world := make([][]*tile, 0, y)
+import (
+	"sync"
+)
+
+func SimpleState(x, y int) State {
+	world := make([][]*Tile, 0, y)
 	for i := 0; i < y; i++ {
 		t := airTile
 		if i > y/2 {
@@ -10,16 +14,19 @@ func SimpleState(x, y int) state {
 		world = append(world, tileRow(t, x))
 	}
 
-	return state{
+	return State{
 		gameState{world, map[string]*plant{}, []*growthRoot{}, 0},
 		diff{[]tileDiff{}, map[string]*plant{}, []string{}},
+		sync.RWMutex{},
+		[]byte{},
+		[]byte{},
 	}
 }
 
-func tileRow(t tileType, size int) []*tile {
-	r := make([]*tile, 0, size)
+func tileRow(t tileType, size int) []*Tile {
+	r := make([]*Tile, 0, size)
 	for i := 0; i < size; i++ {
-		r = append(r, &tile{T: t})
+		r = append(r, &Tile{T: t})
 	}
 	return r
 }

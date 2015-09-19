@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 )
 
-func MarshalGameState(s state) ([]byte, error) {
+func MarshalGameState(s State) ([]byte, error) {
 	return json.Marshal(s.State)
 }
 
-func MarshalDiff(s state) ([]byte, error) {
+func MarshalDiff(s State) ([]byte, error) {
 	return json.Marshal(s.Diff)
 }

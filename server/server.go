@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -31,9 +30,10 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 
 		case wd := <-newConns:
 			go sendWorld(wd, worldData)
-			// c := make(chan []byte)
-			// conns = append(conns, c)
-			// go sendDiffs(ctx, conn, c)
+			c := make(chan []byte)
+			conns = append(conns, c)
+			sendDiffs(ctx, wd, c)
+			close(wd.c)
 		}
 	}
 }
@@ -62,23 +62,22 @@ func handleConnections(port string) {
 
 func sendWorld(wd webSocketDone, data []byte) {
 	err := websocket.Message.Send(wd.ws, data)
-	logrus.Infof("Checking for error", wd.ws)
 	if err != nil {
 		logrus.Error(err)
 	}
 	logrus.Infof("Sent world to conn: %v", wd.ws)
-	close(wd.c)
 }
 
-func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {
+func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 	for {
 		select {
 		case data := <-diff:
-			_, err := conn.Write(data)
+			err := websocket.Message.Send(wd.ws, data)
 			if err != nil {
 				logrus.Error(err)
 			}
-			logrus.Infof("Sent diff to conn: %v", conn)
+			logrus.Infof("Sent diff to conn: %v", wd.ws)
+
 		case <-ctx.Done():
 			return
 		}

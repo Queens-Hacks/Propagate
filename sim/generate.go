@@ -10,7 +10,7 @@ func SimpleState(x, y int) state {
 		world = append(world, tileRow(t, x))
 	}
 
-	return state{world, []plant{}, []growthRoot{}}
+	return state{world, map[string]plant{}, []growthRoot{}}
 }
 
 func tileRow(t tileType, size int) []tile {

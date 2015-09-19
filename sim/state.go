@@ -19,13 +19,13 @@ type Location struct {
 }
 
 type growthRoot struct {
-	PlantId int
+	PlantId string
 	Loc     Location
 	node    *sandbox.Node
 }
 
 type plantInfo struct {
-	PlantId int      `json: "plantId"`
+	PlantId string   `json: "plantId"`
 	Parent  Location `json: "parent"`
 	Age     int      `json: "age"`
 }
@@ -42,8 +42,8 @@ type plant struct {
 }
 
 type state struct {
-	World  [][]tile `json:"world"`
-	Plants []plant  `json:"plants"`
+	World  [][]tile         `json:"world"`
+	Plants map[string]plant `json:"plants"`
 	roots  []growthRoot
 }
 
@@ -124,9 +124,9 @@ func SimulateTick(s *state) {
 	}
 }
 
-func AddPlant(s *state, loc Location, id int) *growthRoot {
+func AddPlant(s *state, loc Location, id string) *growthRoot {
 	// Get the plant information for stuff like the source code
-	plant := &s.Plants[id]
+	plant, _ := s.Plants[id]
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)

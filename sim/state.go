@@ -54,13 +54,13 @@ type newStateInfo struct {
 
 const sunAccumulationRate int = 10
 
-func mkWorldState(s *state, _ *growthRoot) {
+func mkWorldState(s *state, _ *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
 
-	worldState.Lighting[sandbox.Left] = 0
-	worldState.Lighting[sandbox.Right] = 0
-	worldState.Lighting[sandbox.Up] = 0
-	worldState.Lighting[sandbox.Down] = 0
+	ws.Lighting[sandbox.Left] = 0
+	ws.Lighting[sandbox.Right] = 0
+	ws.Lighting[sandbox.Up] = 0
+	ws.Lighting[sandbox.Down] = 0
 
 	return ws
 }
@@ -69,42 +69,42 @@ func applyChanges(s *state, root *growthRoot, in sandbox.NewState) {
 	newX := root.Loc.X
 	newY := root.Loc.Y
 
-	// XXX newState should actually contain information about the type of
+	// XXX in should actually contain information about the type of
 	// operation performed
-	if newState.MoveDir == sandbox.Left {
+	if in.MoveDir == sandbox.Left {
 		newX -= 1
-	} else if newState.MoveDir == sandbox.Right {
+	} else if in.MoveDir == sandbox.Right {
 		newX += 1
-	} else if newState.MoveDir == sandbox.Up {
+	} else if in.MoveDir == sandbox.Up {
 		newY -= 1
-	} else if newState.MoveDir == sandbox.Down {
+	} else if in.MoveDir == sandbox.Down {
 		newY += 1
 	} else {
-		continue
+		return
 	}
 
 	// Can't move there, it's out of bounds!
 	if newY < 0 || newY > len(s.World) {
 		logrus.Info("newY out of bounds")
-		continue
+		return
 	}
 	if newX < 0 || newX > len(s.World[newY]) {
 		logrus.Info("newY out of bounds")
-		continue
+		return
 	}
 
 	// Update the tile entry in the world map with the new growth
 	tile := &s.World[newY][newX]
 	tile.T = plantTile
 	tile.Plant = &plantInfo{
-		PlantId: response.root.PlantId,
-		Parent:  response.root.Loc,
+		PlantId: root.PlantId,
+		Parent:  root.Loc,
 		Age:     0,
 	}
 
 	// Move the growth root to the new location
-	response.root.Loc.X = newX
-	response.root.Loc.Y = newY
+	root.Loc.X = newX
+	root.Loc.Y = newY
 }
 
 // This is called by a timer every n time units

@@ -205,13 +205,16 @@ func (s *State) simulateTick() {
 
 		if p.Energy < 0 {
 			for t := range p.tiles {
-				t.Type = AirTile
-				t.Extra = nil
+				s.SetTile(t, Tile{AirTile, nil})
 			}
+			toKill := []*growthRoot{}
 			for r := range s.state.roots {
 				if r.Plant == p {
-					s.HaltGrowth(r)
+					toKill = append(toKill, r)
 				}
+			}
+			for _, k := range toKill {
+				s.HaltGrowth(k)
 			}
 
 		} else {

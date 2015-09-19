@@ -84,6 +84,7 @@ func (s *State) UpdateSpore(p *spore) bool {
 	p.Location.Y += dy
 	p.Location.X = (p.Location.X + s.Width()) % s.Width()
 
+	p.Location = boundsCheck(p.Location, s.Height(), s.Width())
 	t := s.GetTile(p.Location)
 	if t.Type == DirtTile {
 		p.Location.Y--
@@ -161,20 +162,10 @@ func (s *State) GetTile(loc Location) *Tile {
 	return s.state.World[loc.Y][loc.X]
 }
 
-/* collision detection */
-func reasonableSetTile(old *Tile, new *Tile) bool {
-	return old.Type != PlantTile
-}
-
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
 	// XXX FIXME - this is a hack because we get index errors so often here...
 	loc = boundsCheck(loc, s.Height(), s.Width())
-
-	// Collision detection
-	if !reasonableSetTile(s.GetTile(loc), &new) {
-		return
-	}
 
 	// Manage the addref and releases
 	if new.Extra != nil {
@@ -184,7 +175,7 @@ func (s *State) SetTile(loc Location, new Tile) {
 	old := s.GetTile(loc)
 	if old.Extra != nil {
 		s.plantRelease(old.Extra.SpeciesId)
-		delete(new.Extra.Plant.tiles, loc)
+		delete(old.Extra.Plant.tiles, loc)
 	}
 
 	// Actually update the tile and record the tilediffs
@@ -193,7 +184,7 @@ func (s *State) SetTile(loc Location, new Tile) {
 }
 
 func (s *State) AddPlant(speciesId string) *Plant {
-	plant := &Plant{100, 0, speciesId, map[*Tile]struct{}{}}
+	plant := &Plant{100, 0, speciesId, map[Location]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }

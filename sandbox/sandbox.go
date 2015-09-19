@@ -2,10 +2,11 @@ package sandbox
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Shopify/go-lua"
 	"github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
-	"time"
 )
 
 type WorldState struct {
@@ -282,7 +283,7 @@ func respond(node *internalNode, state NewState) WorldState {
 	node.respond <- state
 	st, ok := <-node.resume
 	if !ok {
-		panic()
+		panic("")
 	}
 
 	return st

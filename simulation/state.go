@@ -1,9 +1,5 @@
 package simulation
 
-type plant struct {
-	color string
-}
-
 type tileType int
 
 const (
@@ -13,11 +9,15 @@ const (
 )
 
 type tile struct {
-	t       tileType
-	plantId int
+	t       tileType `json:"tileType"`
+	plantId int      `json: "plantId"`
+}
+
+type plant struct {
+	color string `json:"color"`
 }
 
 type state struct {
-	world  [][]tile
-	plants map[int]plant
+	world  [][]tile      `json:"world"`
+	plants map[int]plant `json:"plants"`
 }

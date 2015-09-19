@@ -1,33 +1,20 @@
-#---art {
-    width: 90%;
-    height: 1000px;
-    margin: auto;
-    margin-top: 20px;
-    /*padding: 2px;*/
-    display: block;
-    /*height: 90vh;*/
-    /*width: 100%;*/
-    /*height: 100%;*/
-    /*border-width: 1px;*/
-    border-style: solid;
-    /*border-color: black;*/
-}
-
 #codex {
-  padding: 30px;
+    padding: 30px;
 }
 
-.card{
-  padding: 6px;
-  margin-bottom: 10px;
-  background-color: #D1D0CE;
-  border-style: solid;
-  border-radius: 3px;
-  border-color: #87AFC7;
+.card {
+    padding: 6px;
+    margin-bottom: 10px;
+    background-color: #D1D0CE;
+    border-style: solid;
+    border-radius: 3px;
+    border-color: #87AFC7;
 }
 
 body {
     background-color: #E6FFDB;
     margin: 0px;
     padding: 0px;
+    padding-top: 50px;
 }
+

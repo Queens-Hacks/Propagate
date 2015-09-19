@@ -57,7 +57,7 @@ type gameState struct {
 	World    [][]*Tile           `json:"world"`
 	Species  map[string]*Species `json:"plants"`
 	plants   []*Plant
-	roots    []*growthRoot
+	roots    map[*growthRoot]struct{}
 	maxPlant int
 }
 
@@ -167,6 +167,7 @@ func reasonableSetTile(old *Tile, new *Tile) bool {
 
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
+	loc = boundsCheck(loc, s.Height(), s.Width())
 	logrus.Info(loc, new)
 	// Collision detection
 	if !reasonableSetTile(s.GetTile(loc), &new) {
@@ -206,7 +207,8 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{plant.SpeciesId, loc, plant, node}
-	s.state.roots = append(s.state.roots, &root)
+	s.state.roots[&root] = struct{}{}
+	// s.state.roots = append(s.state.roots, &root)
 
 	isUnderground := false
 	if s.GetTile(loc).Type == DirtTile {
@@ -218,6 +220,11 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 
 	// Return a reference to the root node we previously appended
 	return &root
+}
+
+func (s *State) HaltGrowth(gr *growthRoot) {
+	gr.node.Halt()
+	delete(s.state.roots, gr)
 }
 
 func (s *State) lowerToDirt(loc *Location) {

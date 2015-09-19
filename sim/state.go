@@ -1,6 +1,7 @@
 package sim
 
 import (
+	"fmt"
 	"github.com/Queens-Hacks/propagate/sandbox"
 	"github.com/Sirupsen/logrus"
 )
@@ -13,15 +14,15 @@ const (
 	plantTile
 )
 
-type Location struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-
 type growthRoot struct {
 	PlantId string
 	Loc     Location
 	node    *sandbox.Node
+}
+
+type Location struct {
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 type plantInfo struct {
@@ -39,12 +40,78 @@ type plant struct {
 	Color  string `json:"color"`
 	Source string `json:"source"`
 	Author string `json:"author"`
+	refCnt int
+}
+
+type gameState struct {
+	World    [][]*tile         `json:"world"`
+	Plants   map[string]*plant `json:"plants"`
+	roots    []*growthRoot
+	maxPlant int
+}
+
+type tileDiff struct {
+	Loc  Location `json:"loc"`
+	Tile tile     `json:"tile"`
+}
+
+type diff struct {
+	TileDiffs     []tileDiff        `json:"tileDiff"`
+	NewPlants     map[string]*plant `json:"newPlants"`
+	RemovedPlants []string          `json:"removedPlants"`
 }
 
 type state struct {
-	World  [][]tile         `json:"world"`
-	Plants map[string]plant `json:"plants"`
-	roots  []growthRoot
+	State gameState
+	Diff  diff
+}
+
+// Records a reference to a plant, causing the plant to be kept in the structure
+func (s *state) plantAddRef(plantId string) {
+	s.GetPlant(plantId).refCnt++
+}
+
+// Records a reference to a plant, causing the plant to be removed from the structure
+func (s *state) plantRelease(plantId string) {
+	plant := s.GetPlant(plantId)
+	plant.refCnt--
+
+	// If the reference count has reached zero, remove the plant from the thing
+	if plant.refCnt <= 0 {
+		s.Diff.RemovedPlants = append(s.Diff.RemovedPlants, plantId)
+		delete(s.State.Plants, plantId)
+	}
+}
+
+func (s *state) GetPlant(plantId string) *plant {
+	return s.State.Plants[plantId]
+}
+
+// Adds a species to the stateAndDiff, and returns the string key for the plant
+// This plant is created with a refCnt of zero, but will not be dropped until
+// its reference count hits zero again.
+func (s *state) AddSpecies(p plant) string {
+	s.State.maxPlant += 1
+	key := fmt.Sprintf("%d", s.State.maxPlant)
+	s.Diff.NewPlants[key] = &p
+	s.State.Plants[key] = &p
+	return key
+}
+
+// Set the tile at a location to a new tile
+func (s *state) SetTile(loc Location, new tile) {
+	// Manage the addref and releases
+	if new.Plant != nil {
+		s.plantAddRef(new.Plant.PlantId)
+	}
+	old := s.State.World[loc.Y][loc.X]
+	if old.Plant != nil {
+		s.plantRelease(old.Plant.PlantId)
+	}
+
+	// Actually update the tile and record the tilediffs
+	*old = new
+	s.Diff.TileDiffs = append(s.Diff.TileDiffs, tileDiff{loc, new})
 }
 
 type newStateInfo struct {
@@ -66,54 +133,51 @@ func mkWorldState(s *state, _ *growthRoot) sandbox.WorldState {
 }
 
 func applyChanges(s *state, root *growthRoot, in sandbox.NewState) {
-	newX := root.Loc.X
-	newY := root.Loc.Y
+	new := root.Loc
 
 	// XXX in should actually contain information about the type of
 	// operation performed
 	if in.MoveDir == sandbox.Left {
-		newX -= 1
+		new.X -= 1
 	} else if in.MoveDir == sandbox.Right {
-		newX += 1
+		new.X += 1
 	} else if in.MoveDir == sandbox.Up {
-		newY -= 1
+		new.Y -= 1
 	} else if in.MoveDir == sandbox.Down {
-		newY += 1
+		new.Y += 1
 	} else {
+		// Super sketchy way to represent do nothing?
 		return
 	}
 
 	// Can't move there, it's out of bounds!
-	if newY < 0 || newY > len(s.World) {
+	if new.Y < 0 || new.Y > len(s.State.World) {
 		logrus.Info("newY out of bounds")
 		return
 	}
-	if newX < 0 || newX > len(s.World[newY]) {
+	if new.X < 0 || new.X > len(s.State.World[new.Y]) {
 		logrus.Info("newY out of bounds")
 		return
 	}
 
-	// Update the tile entry in the world map with the new growth
-	tile := &s.World[newY][newX]
-	tile.T = plantTile
-	tile.Plant = &plantInfo{
+	s.SetTile(new, tile{plantTile, &plantInfo{
 		PlantId: root.PlantId,
 		Parent:  root.Loc,
 		Age:     0,
-	}
+	}})
 
+	// XXX Should this go through a method rather than direct mutation?
 	// Move the growth root to the new location
-	root.Loc.X = newX
-	root.Loc.Y = newY
+	root.Loc = new
 }
 
 // This is called by a timer every n time units
 func SimulateTick(s *state) {
-	responses := make([]newStateInfo, len(s.roots))
+	responses := make([]newStateInfo, len(s.State.roots))
 
 	// Tell each root to run until the next move operation
-	for i := range s.roots {
-		root := &s.roots[i]
+	for i := range s.State.roots {
+		root := s.State.roots[i]
 		ch := root.node.Update(mkWorldState(s, root))
 		responses[i] = newStateInfo{ch, root}
 	}
@@ -126,20 +190,20 @@ func SimulateTick(s *state) {
 
 func AddPlant(s *state, loc Location, id string) *growthRoot {
 	// Get the plant information for stuff like the source code
-	plant, _ := s.Plants[id]
+	plant, _ := s.State.Plants[id]
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)
 
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{id, loc, node}
-	s.roots = append(s.roots, root)
+	s.State.roots = append(s.State.roots, &root)
 
 	// Update the tile under the new root node
-	tile := &s.World[loc.Y][loc.X]
+	tile := s.State.World[loc.Y][loc.X]
 	tile.T = plantTile
 	tile.Plant = &plantInfo{id, loc, 0}
 
 	// Return a reference to the root node we previously appended
-	return &s.roots[len(s.roots)-1]
+	return s.State.roots[len(s.State.roots)-1]
 }

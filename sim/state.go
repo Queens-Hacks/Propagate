@@ -148,8 +148,18 @@ func (s *State) GetTile(loc Location) *Tile {
 	return s.state.World[loc.Y][loc.X]
 }
 
+/* collision detection */
+func reasonableSetTile(old Tile, new Tile) bool {
+	return old.T != PlantTile
+}
+
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
+	// Collision detection
+	if !reasonableSetTile(s.GetTile(loc), new) {
+		return
+	}
+
 	// Manage the addref and releases
 	if new.Plant != nil {
 		s.plantAddRef(new.Plant.PlantId)

@@ -25,9 +25,9 @@ type Location struct {
 }
 
 type plantInfo struct {
-	PlantId string   `json: "plantId"`
-	Parent  Location `json: "parent"`
-	Age     int      `json: "age"`
+	PlantId string   `json:"plantId"`
+	Parent  Location `json:"parent"`
+	IsRoot  bool     `json:"isRoot"`
 }
 
 type Tile struct {
@@ -58,6 +58,10 @@ type diff struct {
 	TileDiffs     []tileDiff        `json:"tileDiff"`
 	NewPlants     map[string]*Plant `json:"newPlants"`
 	RemovedPlants []string          `json:"removedPlants"`
+}
+
+func (d *diff) isEmpty() bool {
+	return len(d.TileDiffs) == 0 && len(d.NewPlants) == 0 && len(d.RemovedPlants) == 0
 }
 
 type State struct {
@@ -106,13 +110,17 @@ func (s *State) AddSpecies(color int, source string, author string) string {
 	return key
 }
 
+func (s *State) GetTile(loc Location) *Tile {
+	return s.state.World[loc.Y][loc.X]
+}
+
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
 	// Manage the addref and releases
 	if new.Plant != nil {
 		s.plantAddRef(new.Plant.PlantId)
 	}
-	old := s.state.World[loc.Y][loc.X]
+	old := s.GetTile(loc)
 	if old.Plant != nil {
 		s.plantRelease(old.Plant.PlantId)
 	}
@@ -132,8 +140,13 @@ func (s *State) AddPlant(loc Location, id string) *growthRoot {
 	root := growthRoot{id, loc, node}
 	s.state.roots = append(s.state.roots, &root)
 
+	isUnderground := false
+	if s.GetTile(loc).T == DirtTile {
+		isUnderground = true
+	}
+
 	// Set the tile at the base of the plant to a plant tile
-	s.SetTile(loc, Tile{PlantTile, &plantInfo{id, loc, 0}})
+	s.SetTile(loc, Tile{PlantTile, &plantInfo{id, loc, isUnderground}})
 
 	// Return a reference to the root node we previously appended
 	return &root

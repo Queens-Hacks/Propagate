@@ -24,18 +24,20 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 		for {
 			s.simulateTick()
 
-			md, err := json.Marshal(s.diff)
-			if err != nil {
-				logrus.Fatal(err)
-			}
-			ms, err := json.Marshal(s.state)
-			if err != nil {
-				logrus.Fatal(err)
+			if !s.diff.isEmpty() {
+				md, err := json.Marshal(s.diff)
+				if err != nil {
+					logrus.Fatal(err)
+				}
+				ms, err := json.Marshal(s.state)
+				if err != nil {
+					logrus.Fatal(err)
+				}
+
+				s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}}
+				ch <- MarshalledState{ms, md}
 			}
 
-			s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}}
-
-			ch <- MarshalledState{ms, md}
 			<-tick.C
 		}
 	}()
@@ -84,7 +86,6 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 	s.SetTile(new, Tile{PlantTile, &plantInfo{
 		PlantId: root.PlantId,
 		Parent:  root.Loc,
-		Age:     0,
 	}})
 
 	// XXX Should this go through a method rather than direct mutation?

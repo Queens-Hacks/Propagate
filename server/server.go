@@ -2,11 +2,15 @@ package main
 
 import (
 	"net"
+	"net/http"
 
 	"github.com/Sirupsen/logrus"
 
+	"code.google.com/p/go.net/websocket"
 	"golang.org/x/net/context"
 )
+
+var newConns = make(chan net.Conn)
 
 func New(ctx context.Context, total, diff chan []byte, port string) {
 
@@ -35,23 +39,16 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 	}
 }
 
+func handleWebSocket(conn *websocket.Conn) {
+	logrus.Infof("Accepted conn: %v", conn)
+	newConns <- conn
+}
+
 func handleConnections(ctx context.Context, newConns chan<- net.Conn, port string) {
-	ln, err := net.Listen("tcp", port)
+	http.Handle("/", websocket.Handler(handleWebSocket))
+	err := http.ListenAndServe(port, nil)
 	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			logrus.Error(err)
-		}
-
-		logrus.Infof("Accepted conn: %v", conn)
-
-		go func() {
-			newConns <- conn
-		}()
+		logrus.Error(err)
 	}
 }
 

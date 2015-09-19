@@ -38,9 +38,15 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 	}
 }
 
-func handleWebSocket(conn *websocket.Conn) {
-	logrus.Infof("Accepted conn: %v", conn)
-	newConns <- conn
+func handleWebSocket(ws *websocket.Conn) {
+	logrus.Infof("Accepted conn: %v", ws)
+	err := websocket.Message.Send(ws, []byte("hello"))
+	logrus.Infof("Attempted to send hello to websocket: %v", ws)
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	newConns <- ws
 }
 
 func handleConnections(port string) {

@@ -14,8 +14,8 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.SimpleState(1000, 500)
+	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
 	for i := 0; i < 3; i++ {
-		species := s.AddSpecies("ASD", "while 1 do grow(\"up\") end", "Me")
 		s.AddPlant(sim.Location{250 + i*250, 250}, species)
 	}
 

@@ -36,7 +36,7 @@ type Tile struct {
 }
 
 type Plant struct {
-	Color  string `json:"color"`
+	Color  int    `json:"color"`
 	Source string `json:"source"`
 	Author string `json:"author"`
 	refCnt int
@@ -97,7 +97,7 @@ func (s *State) GetPlant(plantId string) *Plant {
 // Adds a species to the stateAndDiff, and returns the string key for the plant
 // This plant is created with a refCnt of zero, but will not be dropped until
 // its reference count hits zero again.
-func (s *State) AddSpecies(color string, source string, author string) string {
+func (s *State) AddSpecies(color int, source string, author string) string {
 	p := Plant{color, source, author, 0}
 	s.state.maxPlant += 1
 	key := fmt.Sprintf("%d", s.state.maxPlant)

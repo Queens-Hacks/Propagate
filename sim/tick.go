@@ -63,6 +63,23 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	return ws
 }
 
+func boundsCheck(loc Location, mh int, mw int) Location {
+	// Can't move there, it's out of bounds!
+	if loc.Y < 0 || loc.Y > mh {
+		logrus.Info("newY out of bounds", loc.Y)
+		return loc
+	}
+
+	// loop around loop
+	if loc.X < 0 {
+		loc.X = mw + loc.X
+	} else if loc.X >= mw {
+		loc.X = loc.X - mw
+	}
+
+	return loc
+}
+
 func MoveGrowthNodeToLocation(loc Location, in sandbox.NewState, mh int, mw int) Location {
 	new := loc
 
@@ -78,15 +95,7 @@ func MoveGrowthNodeToLocation(loc Location, in sandbox.NewState, mh int, mw int)
 		return loc
 	}
 
-	// Can't move there, it's out of bounds!
-	if new.Y < 0 || new.Y > mh {
-		logrus.Info("newY out of bounds", new.Y)
-		return loc
-	}
-	if new.X < 0 || new.X > mw {
-		logrus.Info("newY out of bounds")
-		return loc
-	}
+	new = boundsCheck(new, mh, mw)
 
 	return new // new looks good!
 }

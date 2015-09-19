@@ -147,7 +147,7 @@ func (s *State) addSpecies(p plant) string {
 }
 
 // Set the tile at a location to a new tile
-func (s *State) setTile(loc Location, new Tile) {
+func (s *State) SetTile(loc Location, new Tile) {
 	// Manage the addref and releases
 	if new.Plant != nil {
 		s.plantAddRef(new.Plant.PlantId)
@@ -173,7 +173,7 @@ func (s *State) addPlant(loc Location, id string) *growthRoot {
 	s.state.roots = append(s.state.roots, &root)
 
 	// Set the tile at the base of the plant to a plant tile
-	s.setTile(loc, Tile{PlantTile, &plantInfo{id, loc, 0}})
+	s.SetTile(loc, Tile{PlantTile, &plantInfo{id, loc, 0}})
 
 	// Return a reference to the root node we previously appended
 	return &root

@@ -44,7 +44,7 @@ func applyChanges(s *State, root *growthRoot, in sandbox.NewState) {
 		return
 	}
 
-	s.setTile(new, Tile{PlantTile, &plantInfo{
+	s.SetTile(new, Tile{PlantTile, &plantInfo{
 		PlantId: root.PlantId,
 		Parent:  root.Loc,
 		Age:     0,

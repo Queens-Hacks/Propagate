@@ -14,17 +14,19 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.SimpleState(50, 50)
+	logrus.Infof("Initial world state: %+v", s)
 	data, err := sim.MarshalState(s)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	logrus.Infof("Serialized world data to send: %s", data)
 	go func() {
 		total <- data
 	}()
 
 	port := ":4444"
 
-	logrus.Infof("Listening on port %s...", port)
+	logrus.Infof("Listening on port %s", port)
 	New(ctx, total, diff, port)
 }

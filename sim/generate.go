@@ -10,13 +10,13 @@ func SimpleState(x, y int) state {
 		world = append(world, tileRow(t, x))
 	}
 
-	return state{world, map[int]plant{}}
+	return state{world, []plant{}}
 }
 
 func tileRow(t tileType, size int) []tile {
 	r := make([]tile, 0, size)
 	for i := 0; i < size; i++ {
-		r = append(r, tile{t: t})
+		r = append(r, tile{T: t})
 	}
 	return r
 }

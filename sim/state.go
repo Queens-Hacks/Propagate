@@ -9,15 +9,15 @@ const (
 )
 
 type tile struct {
-	t       tileType `json:"tileType"`
-	plantId int      `json: "plantId"`
+	T       tileType `json:"tileType"`
+	PlantId int      `json: "plantId"`
 }
 
 type plant struct {
-	color string `json:"color"`
+	Color string `json:"color"`
 }
 
 type state struct {
-	world  [][]tile      `json:"world"`
-	plants map[int]plant `json:"plants"`
+	World  [][]tile `json:"world"`
+	Plants []plant  `json:"plants"`
 }

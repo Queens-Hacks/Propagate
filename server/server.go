@@ -15,7 +15,8 @@ var newConns = make(chan webSocketDone)
 func New(ctx context.Context, total, diff chan []byte, port string) {
 
 	var worldData []byte
-	conns := make([]chan []byte, 0)
+	nextId := 0
+	conns := map[int]chan []byte{}
 
 	go handleConnections(port)
 
@@ -27,15 +28,20 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 		case data := <-diff:
 			logrus.Info("sending diff to all clients")
 			for _, c := range conns {
-				c <- data
+				go func() { c <- data }()
 			}
 
 		case wd := <-newConns:
 			go sendWorld(wd, worldData)
 			c := make(chan []byte)
-			conns = append(conns, c)
+			conns[nextId] = c
+			id := nextId
 			logrus.Info("starting diff loop")
-			go func() { sendDiffs(ctx, wd, c); close(wd.done) }()
+			go func() {
+				sendDiffs(ctx, wd, c)
+				close(wd.done)
+				delete(conns, id)
+			}()
 		}
 	}
 }

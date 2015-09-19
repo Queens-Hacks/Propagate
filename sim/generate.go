@@ -18,15 +18,12 @@ func NewState(width, height int) *State {
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	dirtHeight := rand.Intn(height/2) + height/2
+	starting := rand.Intn(height/8) + (height/4)*3
+	dirtHeight := starting
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			if y > dirtHeight {
 				world[y][x] = &Tile{T: DirtTile}
-			}
-
-			if y == height-1 {
-				world[y][x] = &Tile{T: AirTile}
 			}
 		}
 
@@ -36,10 +33,18 @@ func NewState(width, height int) *State {
 		} else if heightChange > 0.75 && dirtHeight > 0 {
 			dirtHeight--
 		}
+
+		if x > width-50 {
+			if dirtHeight > starting {
+				dirtHeight -= 1
+			} else if dirtHeight < starting {
+				dirtHeight += 1
+			}
+		}
 	}
 
 	return &State{
 		gameState{world, map[string]*Plant{}, []*growthRoot{}, 0},
-		diff{[]tileDiff{}, map[string]*Plant{}, []string{}},
+		diff{[]tileDiff{}, map[string]*Plant{}, []string{}, []spore{}},
 	}
 }

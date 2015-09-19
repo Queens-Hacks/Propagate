@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/Queens-Hacks/Propagate/sim"
 	"github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -13,10 +15,10 @@ func main() {
 	total := make(chan []byte)
 	diff := make(chan []byte)
 
-	s := sim.NewState(600, 250)
+	s := sim.NewState(500, 125)
 	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
-	for i := 0; i < 3; i++ {
-		s.AddPlant(sim.Location{200 + i*50, 50}, species)
+	for i := 0; i < 50; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 50}, species)
 	}
 
 	port := ":4444"

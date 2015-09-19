@@ -53,7 +53,7 @@ func updateState(s *sim.State, t sim.TileType) ([]byte, []byte) {
 	s.Finalize()
 	st := s.MarshalState()
 	df := s.MarshalDiff()
-	fmt.Printf("total: %s", st)
-	fmt.Printf("diff: %s", df)
+	//fmt.Printf("total: %s", st)
+	fmt.Printf("diff: %s\n", df)
 	return st, df
 }

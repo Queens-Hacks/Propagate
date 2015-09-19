@@ -13,7 +13,7 @@ func main() {
 	total := make(chan []byte)
 	diff := make(chan []byte)
 
-	s := sim.SimpleState(50, 50)
+	s := sim.SimpleState(100, 50)
 	data, err := sim.MarshalGameState(s)
 	if err != nil {
 		logrus.Fatal(err)
@@ -26,5 +26,18 @@ func main() {
 	port := ":4444"
 
 	logrus.Infof("Listening on port %s", port)
-	New(ctx, total, diff, port)
+	go New(ctx, total, diff, port)
+
+	for {
+		updateState(&s, sim.DirtTile)
+		updateState(&s, sim.AirTile)
+	}
+}
+
+func updateState(s *sim.State, t sim.TileType) {
+	for x := 40; x < 60; x++ {
+		for y := 20; y < 25; y++ {
+			s.SetTile(sim.Location{x, y}, sim.Tile{T: t})
+		}
+	}
 }

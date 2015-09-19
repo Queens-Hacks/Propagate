@@ -14,7 +14,7 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.SimpleState(50, 50)
-	data, err := sim.MarshalState(s)
+	data, err := sim.MarshalGameState(s)
 	if err != nil {
 		logrus.Fatal(err)
 	}

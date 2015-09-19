@@ -2,19 +2,15 @@
 /* -*- js2-basic-offset: 4 -*- */
 var husl = require('husl');
 
-function assert(arg, msg) {
-    if (!arg) {
-        console.error(new Error("arg is not true: " + msg));
-    }
-}
-
 var codex = document.getElementById('codex');
-var canvas = document.getElementById('art');
-var ctx = canvas.getContext('2d');
 
-var sx = 2;
-var sy = 2;
-var plants = [];
+var visCan = document.getElementById('art');
+var visCtx = visCan.getContext('2d');
+
+var hidCan = document.getElementById('hidden');
+var hidCtx = hidCan.getContext('2d');
+
+var scale = 4;
 
 var state = {
     world: [],
@@ -24,6 +20,7 @@ var state = {
 var xViewport = 0;
 
 function worldWidth() {
+    if (worldHeight() == 0) return 0;
     return state.world[0].length;
 }
 
@@ -39,10 +36,10 @@ var colorMap = [
 
 var firstFrame = true;
 
+// Render into the hidden canvas
 function render() {
-    // Fill with air
-    ctx.fillStyle = colorMap[0];
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    hidCtx.fillStyle = colorMap[0];
+    hidCtx.fillRect(0, 0, hidCan.width, hidCan.height);
 
     for (var y = 0; y < state.world.length; y++) {
         for (var x = 0; x < state.world[y].length; x++) {
@@ -50,6 +47,19 @@ function render() {
         }
     }
 
+    display();
+}
+
+function display() {
+    visCtx.fillStyle = colorMap[0];
+    visCtx.fillRect(0, 0, visCan.width, visCan.height);
+
+    visCtx.drawImage(hidCan, xViewport, 0);
+    if (xViewport > 0) {
+        visCtx.drawImage(hidCan, xViewport - worldWidth() * scale, 0);
+    } else {
+        visCtx.drawImage(hidCan, xViewport + worldWidth() * scale, 0);
+    }
 }
 
 function applyDelta(delta) {
@@ -66,25 +76,14 @@ function applyDelta(delta) {
     });
 }
 
-function renderDelta(delta) {
-    tiles = delta['tileDiff'];
-    for (var i = 0; i < tiles.length; i++) {
-        console.log(tiles[i]['tile']['tileType']);
-        drawTile(tiles[i]['loc']['x'], tiles[i]['loc']['y'], tiles[i]['tile']);
-
-    }
-}
-
 function drawTile(x, y, tile) {
     if (tile['tileType'] == 0) {
         return;
     }
 
-    ctx.fillStyle = colorMap[tile['tileType']];
-    var drawX = Math.abs((x * sx + xViewport) % (worldWidth() * sx));
-    if (drawX < canvas.width) {
-        ctx.fillRect(drawX, y * sy, sx, sy);
-    }
+    // XXX Do we want to do this without scaling, and scale when we copy to visctx?
+    hidCtx.fillStyle = colorMap[tile['tileType']];
+    hidCtx.fillRect(x * scale, y * scale, scale, scale);
 }
 
 var ws = new WebSocket("ws://localhost:4444/");
@@ -118,17 +117,13 @@ window.onbeforeunload = function() {
     ws.close();
 };
 
-/* function updateCodex(plants) {
-    var newHtml = "";
-    for (var i = 0; i < state.plants.length; i++) {
-        newHtml += "<div class='card'><p>" + state.plants[i].toString() + "<br></p></div>";
-    }
-    codex.innerHTML = newHtml;
-} */
-
 function onResize() {
-    canvas.width = window.innerWidth;
-    canvas.height = worldHeight() * sy;
+    hidCan.width = worldWidth() * scale;
+    hidCan.height = worldHeight() * scale;
+
+    visCan.width = window.innerWidth;
+    visCan.height = worldHeight() * scale;
+
     runningResize = false;
     render();
 }
@@ -142,22 +137,40 @@ window.addEventListener("resize", function(e) {
 
 onResize();
 
+var dir = 1;
 var lastX = -1;
-art.addEventListener('mousedown', function(e) {
-    console.log(e.clientX);
+visCan.addEventListener('mousedown', function(e) {
     lastX = e.clientX;
+    dir = 0;
 });
 
-art.addEventListener('mousemove', function(e) {
+visCan.addEventListener('mousemove', function(e) {
     if (lastX == -1) { return; }
-    console.log(e.clientX);
     xViewport -= lastX - e.clientX;
+
+    if (lastX - e.clientX < 0) {
+        dir = 1;
+    } else if (lastX - e.clientX > 0) {
+        dir = -1;
+    }
+
+    xViewport = xViewport % (worldWidth() * scale);
     lastX = e.clientX;
-    render();
+    display();
 });
 
-art.addEventListener('mouseup', function(e) {
-    console.log(e.clientX);
+window.setInterval(function() {
+    if (lastX == -1) {
+        requestAnimationFrame(function() {
+            if (worldWidth() == 0) return;
+            xViewport += dir;
+            xViewport = xViewport % (worldWidth() * scale);
+            display();
+        });
+    }
+}, 100);
+
+visCan.addEventListener('mouseup', function(e) {
     lastX = -1;
 });
 

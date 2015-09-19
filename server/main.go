@@ -13,7 +13,7 @@ func main() {
 	total := make(chan []byte)
 	diff := make(chan []byte)
 
-	s := sim.NewState(600, 250)
+	s := sim.NewState(500, 125)
 	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
 	for i := 0; i < 3; i++ {
 		s.AddPlant(sim.Location{200 + i*50, 50}, species)

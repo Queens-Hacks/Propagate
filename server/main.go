@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Queens-Hacks/Propagate/sim"
@@ -35,7 +36,7 @@ func main() {
 		total <- st
 		diff <- df
 
-		time.Sleep(time.Second)
+		time.Sleep(5 * time.Second)
 
 		st, df = updateState(&s, sim.DirtTile)
 		total <- st
@@ -52,5 +53,7 @@ func updateState(s *sim.State, t sim.TileType) ([]byte, []byte) {
 	s.Finalize()
 	st := s.MarshalState()
 	df := s.MarshalDiff()
+	fmt.Printf("total: %s", st)
+	fmt.Printf("diff: %s", df)
 	return st, df
 }

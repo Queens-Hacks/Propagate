@@ -57,36 +57,59 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	return ws
 }
 
-func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
-	new := root.Loc
+func MoveGrowthNodeToLocation(loc Location, in sandbox.NewState, mh int, mw int) Location {
+	new := loc
 
-	if in.MoveDir == sandbox.Left {
+	if in.Dir == sandbox.Left {
 		new.X -= 1
-	} else if in.MoveDir == sandbox.Right {
+	} else if in.Dir == sandbox.Right {
 		new.X += 1
-	} else if in.MoveDir == sandbox.Up {
+	} else if in.Dir == sandbox.Up {
 		new.Y -= 1
-	} else if in.MoveDir == sandbox.Down {
+	} else if in.Dir == sandbox.Down {
 		new.Y += 1
 	} else {
-		// Super sketchy way to represent do nothing?
-		return
+		return loc
 	}
 
 	// Can't move there, it's out of bounds!
-	if new.Y < 0 || new.Y > s.Height() {
+	if new.Y < 0 || new.Y > mh {
 		logrus.Info("newY out of bounds", new.Y)
-		return
+		return loc
 	}
-	if new.X < 0 || new.X > s.Width() {
+	if new.X < 0 || new.X > mw {
 		logrus.Info("newY out of bounds")
-		return
+		return loc
 	}
 
-	s.SetTile(new, Tile{PlantTile, &plantInfo{
-		PlantId: root.PlantId,
-		Parent:  root.Loc,
-	}})
+	return new // new looks good!
+}
+
+func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
+	new := root.Loc
+
+	if in.Operation == sandbox.Move {
+		new = MoveGrowthNodeToLocation(root.Loc, in, s.Height(), s.Width())
+		s.SetTile(new, Tile{PlantTile, &plantInfo{
+			PlantId: root.PlantId,
+			Parent:  root.Loc,
+		}})
+	} else if in.Operation == sandbox.Split {
+		tmp := MoveGrowthNodeToLocation(root.Loc, in, s.Height(), s.Width())
+		s.SetTile(tmp, Tile{PlantTile, &plantInfo{
+			PlantId: root.PlantId,
+			Parent:  root.Loc,
+		}})
+		s.SetTile(root.Loc, Tile{PlantTile, &plantInfo{
+			PlantId: root.PlantId,
+			Parent:  root.Loc,
+		}})
+	} else if in.Operation == sandbox.Wait {
+		// that was easy
+		return
+	} else {
+		return
+	}
 
 	// XXX Should this go through a method rather than direct mutation?
 	// Move the growth root to the new location

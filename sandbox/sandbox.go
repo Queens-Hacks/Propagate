@@ -9,8 +9,17 @@ type WorldState struct {
 	Lighting map[Direction]float64
 }
 
+type StateChange int
+
+const (
+	Move StateChange = iota
+	Split
+	Wait
+)
+
 type NewState struct {
-	MoveDir Direction
+	Operation StateChange
+	Dir Direction
 }
 
 type Node struct {
@@ -57,6 +66,7 @@ const (
 	Right
 	Up
 	Down
+	Undef
 )
 
 func watchLuaThread(l *lua.State, d time.Duration) {
@@ -156,7 +166,31 @@ func runNode(node internalNode) {
 
 	addDirFunc(l, "grow", func(l *lua.State, d Direction) int {
 		var state NewState
-		state.MoveDir = d
+		state.Dir = d
+		state.Operation = Move
+
+		// Send a response and wait
+		node.respond <- state
+		world = <-node.resume
+
+		return 0
+	})
+
+	addVoidFunc(l, "wait", func(l *lua.State) int {
+		var state NewState
+		state.Dir = Undef
+		state.Operation = Wait
+
+		node.respond <- state
+		world = <-node.resume
+
+		return 0
+	})
+
+	addDirFunc(l, "split", func(l *lua.State, d Direction) int {
+		var state NewState
+		state.Dir = d
+		state.Operation = Split
 
 		// Send a response and wait
 		node.respond <- state

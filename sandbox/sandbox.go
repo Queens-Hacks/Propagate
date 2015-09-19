@@ -1,7 +1,10 @@
 package sandbox
 
 import (
+	"fmt"
 	"github.com/Shopify/go-lua"
+	"github.com/Sirupsen/logrus"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -20,41 +23,52 @@ const (
 type NewState struct {
 	Operation StateChange
 	Dir       Direction
+	Meta      string
 }
 
 type Node struct {
 	resume  chan<- WorldState
 	respond <-chan NewState
+	ctx     context.Context
 }
 
 func (n *Node) Update(state WorldState) <-chan NewState {
-	n.resume <- state
+	select {
+	case n.resume <- state:
+	case <-n.ctx.Done():
+	}
+
 	return n.respond
 }
 
-func AddNode(program string) *Node {
+func AddNode(program string, meta string) *Node {
 	// Make the communication channels
 	resume := make(chan WorldState)
 	respond := make(chan NewState)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	n := Node{
 		resume:  resume,
 		respond: respond,
+		ctx:     ctx,
 	}
 
 	in := internalNode{
 		program: program,
+		meta:    meta,
+		cancel:  cancel,
 		resume:  resume,
 		respond: respond,
 	}
 
 	go runNode(in)
-
 	return &n
 }
 
 type internalNode struct {
 	program string
+	meta    string
+	cancel  func()
 	resume  <-chan WorldState
 	respond chan<- NewState
 }
@@ -159,9 +173,77 @@ func addDirFunc(l *lua.State, name string, fn func(*lua.State, Direction) int) {
 	l.SetGlobal(name)
 }
 
+func addDirStrFunc(l *lua.State, name string, fn func(*lua.State, Direction, string) int) {
+	l.PushGoFunction(func(l *lua.State) int {
+		argCount := l.Top()
+		if argCount != 2 {
+			l.PushString("incorrect number of arguments") // XXX Include name of function
+			l.Error()
+			return 0
+		}
+
+		s, ok := l.ToString(1)
+		if !ok {
+			l.PushString("incorrect type of argument") // XXX Include name of function
+			l.Error()
+			return 0
+		}
+
+		s2, ok := l.ToString(2)
+		if !ok {
+			l.PushString("incorrect type of argument")
+			l.Error()
+			return 0
+		}
+
+		var d Direction
+		if s == "left" {
+			d = Left
+		} else if s == "right" {
+			d = Right
+		} else if s == "up" {
+			d = Up
+		} else if s == "down" {
+			d = Down
+		} else {
+			l.PushString("incorrect type of argument")
+			l.Error()
+			return 0
+		}
+
+		return fn(l, d, s2)
+	})
+
+	l.SetGlobal(name)
+}
+
+func addStrFunc(l *lua.State, name string, fn func(*lua.State, string) int) {
+	l.PushGoFunction(func(l *lua.State) int {
+		argCount := l.Top()
+		if argCount != 1 {
+			l.PushString("incorrect number of arguments") // XXX Include name of function
+			l.Error()
+			return 0
+		}
+
+		s, ok := l.ToString(1)
+		if !ok {
+			l.PushString("incorrect type of argument") // XXX Include name of function
+			l.Error()
+			return 0
+		}
+
+		return fn(l, s)
+	})
+
+	l.SetGlobal(name)
+}
+
 func runNode(node internalNode) {
 	defer func() {
 		if r := recover(); r != nil {
+			logrus.Info("Dead thread")
+			node.cancel()
 			close(node.respond)
 		}
 	}()
@@ -197,10 +279,11 @@ func runNode(node internalNode) {
 		return 0
 	})
 
-	addDirFunc(l, "split", func(l *lua.State, d Direction) int {
+	addDirStrFunc(l, "split", func(l *lua.State, d Direction, s string) int {
 		updateEndTime(&end_time)
 		var state NewState
 		state.Dir = d
+		state.Meta = s
 		state.Operation = Split
 
 		// Send a response and wait
@@ -213,6 +296,17 @@ func runNode(node internalNode) {
 	addDirFunc(l, "lighting", func(l *lua.State, d Direction) int {
 		l.PushNumber(world.Lighting[d])
 		return 1
+	})
+
+	// Include the meta string property from the other context
+	addVoidFunc(l, "meta", func(l *lua.State) int {
+		l.PushString(node.meta)
+		return 1
+	})
+
+	addStrFunc(l, "debug", func(l *lua.State, s string) int {
+		fmt.Println(s)
+		return 0
 	})
 
 	lua.LoadString(l, node.program)

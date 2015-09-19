@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/Queens-Hacks/Propagate/sim"
 	"github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -16,43 +14,18 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.SimpleState(100, 50)
-	data, err := sim.MarshalGameState(s)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	go func() {
-		total <- data
-	}()
+	species := s.AddSpecies("ASD", "while 1 do grow(\"up\") end", "Me")
+	s.AddPlant(sim.Location{50, 25}, species)
 
 	port := ":4444"
 
 	logrus.Infof("Listening on port %s", port)
 	go New(ctx, total, diff, port)
 
+	ss := s.StartSimulate()
 	for {
-		st, df := updateState(&s, sim.DirtTile)
-		total <- st
-		diff <- df
-
-		time.Sleep(500 * time.Millisecond)
-
-		st, df = updateState(&s, sim.DirtTile)
-		total <- st
-		diff <- df
+		ms := <-ss
+		total <- ms.State
+		diff <- ms.Diff
 	}
-}
-
-func updateState(s *sim.State, t sim.TileType) ([]byte, []byte) {
-	for x := 40; x < 60; x++ {
-		for y := 20; y < 25; y++ {
-			s.SetTile(sim.Location{x, y}, sim.Tile{T: t})
-		}
-	}
-	s.Finalize()
-	st := s.MarshalState()
-	df := s.MarshalDiff()
-	//fmt.Printf("total: %s", st)
-	//fmt.Printf("diff: %s\n", df)
-	return st, df
 }

@@ -35,7 +35,7 @@ type Tile struct {
 	Plant *plantInfo `json:"plant"`
 }
 
-type plant struct {
+type Plant struct {
 	Color  string `json:"color"`
 	Source string `json:"source"`
 	Author string `json:"author"`
@@ -44,7 +44,7 @@ type plant struct {
 
 type gameState struct {
 	World    [][]*Tile         `json:"world"`
-	Plants   map[string]*plant `json:"plants"`
+	Plants   map[string]*Plant `json:"plants"`
 	roots    []*growthRoot
 	maxPlant int
 }
@@ -56,7 +56,7 @@ type tileDiff struct {
 
 type diff struct {
 	TileDiffs     []tileDiff        `json:"tileDiff"`
-	NewPlants     map[string]*plant `json:"newPlants"`
+	NewPlants     map[string]*Plant `json:"newPlants"`
 	RemovedPlants []string          `json:"removedPlants"`
 }
 
@@ -90,14 +90,15 @@ func (s *State) Height() int {
 	return len(s.state.World)
 }
 
-func (s *State) GetPlant(plantId string) *plant {
+func (s *State) GetPlant(plantId string) *Plant {
 	return s.state.Plants[plantId]
 }
 
 // Adds a species to the stateAndDiff, and returns the string key for the plant
 // This plant is created with a refCnt of zero, but will not be dropped until
 // its reference count hits zero again.
-func (s *State) AddSpecies(p plant) string {
+func (s *State) AddSpecies(color string, source string, author string) string {
+	p := Plant{color, source, author, 0}
 	s.state.maxPlant += 1
 	key := fmt.Sprintf("%d", s.state.maxPlant)
 	s.diff.NewPlants[key] = &p

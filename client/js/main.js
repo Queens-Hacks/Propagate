@@ -51,7 +51,7 @@ ws.onmessage = function(evt) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         json = JSON.parse(reader.result)
-            // console.log(json);
+            console.log(json);
 
         if (firstFrame) {
 

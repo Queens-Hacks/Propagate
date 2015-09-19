@@ -22,7 +22,7 @@ func NewState(width, height int) *State {
 	return &s
 }
 
-func SimpleState(x, y int) State {
+func SimpleState(x, y int) *State {
 	world := make([][]*Tile, 0, y)
 	for i := 0; i < y; i++ {
 		t := AirTile
@@ -32,9 +32,9 @@ func SimpleState(x, y int) State {
 		world = append(world, tileRow(t, x))
 	}
 
-	return State{
-		gameState{world, map[string]*plant{}, []*growthRoot{}, 0},
-		diff{[]tileDiff{}, map[string]*plant{}, []string{}},
+	return &State{
+		gameState{world, map[string]*Plant{}, []*growthRoot{}, 0},
+		diff{[]tileDiff{}, map[string]*Plant{}, []string{}},
 	}
 }
 

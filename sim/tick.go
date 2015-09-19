@@ -33,7 +33,9 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 				logrus.Fatal(err)
 			}
 
-			ch <- MarshalledState{md, ms}
+			s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}}
+
+			ch <- MarshalledState{ms, md}
 			<-tick.C
 		}
 	}()
@@ -43,6 +45,7 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 
 func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
+	ws.Lighting = map[sandbox.Direction]float64{}
 
 	ws.Lighting[sandbox.Left] = 0
 	ws.Lighting[sandbox.Right] = 0
@@ -70,7 +73,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 
 	// Can't move there, it's out of bounds!
 	if new.Y < 0 || new.Y > s.Height() {
-		logrus.Info("newY out of bounds")
+		logrus.Info("newY out of bounds", new.Y)
 		return
 	}
 	if new.X < 0 || new.X > s.Width() {

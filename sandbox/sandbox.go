@@ -280,7 +280,12 @@ func respond(node *internalNode, state NewState) WorldState {
 	// Panicking here will unwind to the recover in runNode, which is what we want
 
 	node.respond <- state
-	return <-node.resume
+	st, ok := <-node.resume
+	if !ok {
+		panic()
+	}
+
+	return st
 }
 
 func runNode(node internalNode) {

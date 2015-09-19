@@ -65,9 +65,14 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 
 func boundsCheck(loc Location, mh int, mw int) Location {
 	// Can't move there, it's out of bounds!
-	if loc.Y < 0 || loc.Y >= mh {
+	if loc.Y < 0 {
 		logrus.Info("newY out of bounds", loc.Y)
-		return loc
+		loc.Y = 0
+	}
+
+	if loc.Y >= mh {
+		logrus.Info("newY out of bounds", loc.Y)
+		loc.Y = mh - 1
 	}
 
 	// loop around loop

@@ -167,7 +167,9 @@ func reasonableSetTile(old *Tile, new *Tile) bool {
 
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
+	// XXX FIXME - this is a hack because we get index errors so often here...
 	loc = boundsCheck(loc, s.Height(), s.Width())
+
 	logrus.Info(loc, new)
 	// Collision detection
 	if !reasonableSetTile(s.GetTile(loc), &new) {

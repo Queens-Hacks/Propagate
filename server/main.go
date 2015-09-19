@@ -13,9 +13,11 @@ func main() {
 	total := make(chan []byte)
 	diff := make(chan []byte)
 
-	s := sim.SimpleState(100, 50)
-	species := s.AddSpecies("ASD", "while 1 do grow(\"up\") end", "Me")
-	s.AddPlant(sim.Location{50, 25}, species)
+	s := sim.SimpleState(1000, 500)
+	for i := 0; i < 3; i++ {
+		species := s.AddSpecies("ASD", "while 1 do grow(\"up\") end", "Me")
+		s.AddPlant(sim.Location{250 + i*250, 250}, species)
+	}
 
 	port := ":4444"
 

@@ -35,8 +35,7 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			c := make(chan []byte)
 			conns = append(conns, c)
 			logrus.Info("starting diff loop")
-			sendDiffs(ctx, wd, c)
-			close(wd.done)
+			go func() { sendDiffs(ctx, wd, c); close(wd.done) }()
 		}
 	}
 }

@@ -64,8 +64,7 @@ func SimulateTick(s *state) {
 		var worldState sandbox.WorldState
 
 		ch := s.roots[i].node.Update(worldState)
-
-		responses = append(responses, newStateInfo{ch, &s.roots[i]})
+		responses[i] = newStateInfo{ch, &s.roots[i]}
 	}
 
 	for _, response := range responses {

@@ -10,14 +10,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-var newConns = make(chan net.Conn)
+var newConns = make(chan *websocket.Conn)
 
 func New(ctx context.Context, total, diff chan []byte, port string) {
 
 	var worldData []byte
 	conns := make([]chan []byte, 0)
 
-	go handleConnections(ctx, newConns, port)
+	go handleConnections(port)
 
 	for {
 		select {
@@ -29,11 +29,11 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 				c <- data
 			}
 
-		case conn := <-newConns:
-			go sendWorld(conn, worldData)
-			c := make(chan []byte)
-			conns = append(conns, c)
-			go sendDiffs(ctx, conn, c)
+		case ws := <-newConns:
+			go sendWorld(ws, worldData)
+			// c := make(chan []byte)
+			// conns = append(conns, c)
+			// go sendDiffs(ctx, conn, c)
 		}
 	}
 }
@@ -43,7 +43,7 @@ func handleWebSocket(conn *websocket.Conn) {
 	newConns <- conn
 }
 
-func handleConnections(ctx context.Context, newConns chan<- net.Conn, port string) {
+func handleConnections(port string) {
 	http.Handle("/", websocket.Handler(handleWebSocket))
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
@@ -51,12 +51,12 @@ func handleConnections(ctx context.Context, newConns chan<- net.Conn, port strin
 	}
 }
 
-func sendWorld(conn net.Conn, data []byte) {
-	_, err := conn.Write(data)
+func sendWorld(ws *websocket.Conn, data []byte) {
+	err := websocket.Message.Send(ws, data)
 	if err != nil {
 		logrus.Error(err)
 	}
-	logrus.Infof("Sent world to conn: %v", conn)
+	logrus.Infof("Sent world to conn: %v", ws)
 }
 
 func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {

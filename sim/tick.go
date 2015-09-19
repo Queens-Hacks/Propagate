@@ -2,9 +2,10 @@ package sim
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
-	"time"
 )
 
 type MarshalledState struct {
@@ -34,7 +35,12 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 					logrus.Fatal(err)
 				}
 
-				s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}}
+				spores := []spore{}
+				if s.diff.Spores != nil {
+					spores = s.diff.Spores
+				}
+
+				s.diff = diff{[]tileDiff{}, map[string]*Plant{}, []string{}, spores}
 				ch <- MarshalledState{ms, md}
 			}
 
@@ -136,4 +142,15 @@ func (s *State) simulateTick() {
 		newState := <-response.ch
 		s.applyChanges(response.root, newState)
 	}
+
+	spores := []spore{}
+	for _, p := range s.diff.Spores {
+		// UpdateSpore returns true if it has planted the spore
+		spawned := s.UpdateSpore(&p)
+		// Unplanted spores are kept for next tick
+		if !spawned {
+			spores = append(spores, p)
+		}
+	}
+	s.diff.Spores = spores
 }

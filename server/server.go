@@ -34,7 +34,7 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 
 		case wd := <-newConns:
 			sendWorld(wd, worldData)
-			c := make(chan []byte, 999999)
+			c := make(chan []byte, 100)
 			conns[nextId] = c
 			id := nextId
 			wd.id = id

@@ -2,8 +2,10 @@ package sim
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
+	"github.com/Sirupsen/logrus"
 )
 
 type TileType int
@@ -55,14 +57,47 @@ type tileDiff struct {
 	Tile Tile     `json:"tile"`
 }
 
+type spore struct {
+	Location Location `json:"location"`
+	PlantId  string   `json:"plantId"`
+}
+
+func (s *State) AddSpore(loc Location, plantId string) {
+	// TODO add in bounds checks
+	s.diff.Spores = append(s.diff.Spores, spore{loc, plantId})
+}
+
+func (s *State) UpdateSpore(p *spore) bool {
+	logrus.Infof("spore at location %v", p.Location)
+	dx := rand.Intn(3) - 1
+	dy := rand.Intn(2)
+	p.Location.X += dx
+	p.Location.Y += dy
+	p.Location.X = (p.Location.X + s.Width()) % s.Width()
+
+	t := s.GetTile(p.Location)
+	if t.T == DirtTile {
+		p.Location.Y--
+		t = s.GetTile(p.Location)
+		// dont plant if not on air tile
+		if t.T != AirTile {
+			return true
+		}
+		s.AddPlant(p.Location, p.PlantId)
+		return true
+	}
+	return false
+}
+
 type diff struct {
 	TileDiffs     []tileDiff        `json:"tileDiff"`
 	NewPlants     map[string]*Plant `json:"newPlants"`
 	RemovedPlants []string          `json:"removedPlants"`
+	Spores        []spore           `json:"spores"`
 }
 
 func (d *diff) isEmpty() bool {
-	return len(d.TileDiffs) == 0 && len(d.NewPlants) == 0 && len(d.RemovedPlants) == 0
+	return len(d.TileDiffs) == 0 && len(d.NewPlants) == 0 && len(d.RemovedPlants) == 0 && len(d.Spores) == 0
 }
 
 type State struct {

@@ -125,7 +125,7 @@ function onResize() {
     visCan.height = worldHeight() * scale;
 
     runningResize = false;
-    render();
+    display();
 }
 
 var runningResize = false;

@@ -58,6 +58,7 @@ func handleWebSocket(ws *websocket.Conn) {
 		logrus.Error(err)
 	}
 	<-done
+	logrus.Infof("Closing websocket: %v", ws)
 }
 
 func handleConnections(port string) {

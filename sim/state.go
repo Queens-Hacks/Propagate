@@ -123,13 +123,6 @@ func (s *state) SetTile(loc Location, new tile) {
 	s.Diff.TileDiffs = append(s.Diff.TileDiffs, tileDiff{loc, new})
 }
 
-type newStateInfo struct {
-	ch   <-chan sandbox.NewState
-	root *growthRoot
-}
-
-const sunAccumulationRate int = 10
-
 func mkWorldState(s *state, _ *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
 
@@ -180,8 +173,13 @@ func applyChanges(s *state, root *growthRoot, in sandbox.NewState) {
 	root.Loc = new
 }
 
+type newStateInfo struct {
+	ch   <-chan sandbox.NewState
+	root *growthRoot
+}
+
 // This is called by a timer every n time units
-func SimulateTick(s *state) {
+func (s *state) SimulateTick() {
 	responses := make([]newStateInfo, len(s.State.roots))
 
 	// Tell each root to run until the next move operation
@@ -197,9 +195,8 @@ func SimulateTick(s *state) {
 	}
 }
 
-func AddPlant(s *state, loc Location, id string) *growthRoot {
-	// Get the plant information for stuff like the source code
-	plant, _ := s.State.Plants[id]
+func (s *state) AddPlant(loc Location, id string) *growthRoot {
+	plant = s.GetPlant(id)
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)
@@ -208,11 +205,9 @@ func AddPlant(s *state, loc Location, id string) *growthRoot {
 	root := growthRoot{id, loc, node}
 	s.State.roots = append(s.State.roots, &root)
 
-	// Update the tile under the new root node
-	tile := s.State.World[loc.Y][loc.X]
-	tile.T = plantTile
-	tile.Plant = &plantInfo{id, loc, 0}
+	// Set the tile at the base of the plant to a plant tile
+	s.SetTile(loc, tile{plantTile, &plantInfo{id, loc, 0}})
 
 	// Return a reference to the root node we previously appended
-	return s.State.roots[len(s.State.roots)-1]
+	return &root
 }

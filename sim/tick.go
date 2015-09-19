@@ -119,6 +119,9 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 			PlantId: root.PlantId,
 			Parent:  root.Loc,
 		}})
+
+		// Add the new root for the new plant
+		s.AddPlant(tmp, root.PlantId, in.Meta)
 	} else if in.Operation == sandbox.Wait {
 		// that was easy
 		return

@@ -26,9 +26,9 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			worldData = data
 
 		case data := <-diff:
-			logrus.Infof("sending diff to %d clients with total %d", len(conns), nextId)
-			for key, c := range conns {
-				logrus.Infof("sending DIFF to %d", key)
+			// logrus.Infof("sending diff to %d clients with total %d", len(conns), nextId)
+			for _, c := range conns {
+				// logrus.Infof("sending DIFF to %d", key)
 				go func(b chan []byte) { b <- data }(c)
 			}
 
@@ -67,7 +67,7 @@ func handleWebSocket(ws *websocket.Conn) {
 		logrus.Error(err)
 	}
 	<-done
-	logrus.Infof("Closing websocket: %v", ws)
+	// logrus.Infof("Closing websocket: %v", ws)
 }
 
 func handleConnections(port string) {
@@ -83,19 +83,19 @@ func sendWorld(wd webSocketDone, data []byte) {
 	if err != nil {
 		logrus.Error(err)
 	}
-	logrus.Infof("Sent world to conn %d", wd.id)
+	// logrus.Infof("Sent world to conn %d", wd.id)
 }
 
 func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 	for {
 		select {
 		case data := <-diff:
-			logrus.Infof("conn %d is waiting for diff", wd.id)
+			// logrus.Infof("conn %d is waiting for diff", wd.id)
 			err := websocket.Message.Send(wd.ws, data)
 			if err != nil {
 				logrus.Error(err)
 			}
-			logrus.Infof("Sent diff to conn %d", wd.id)
+			// logrus.Infof("Sent diff to conn %d", wd.id)
 
 		case <-ctx.Done():
 			return

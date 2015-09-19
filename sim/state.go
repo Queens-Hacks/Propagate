@@ -81,7 +81,7 @@ func (s *State) UpdateSpore(p *spore) bool {
 		if t.T != AirTile {
 			return true
 		}
-		s.AddPlant(p.Location, p.PlantId)
+		s.AddPlant(p.Location, p.PlantId, "")
 		return true
 	}
 	return false
@@ -164,11 +164,11 @@ func (s *State) SetTile(loc Location, new Tile) {
 	s.diff.TileDiffs = append(s.diff.TileDiffs, tileDiff{loc, new})
 }
 
-func (s *State) AddPlant(loc Location, id string) *growthRoot {
+func (s *State) AddPlant(loc Location, id string, meta string) *growthRoot {
 	plant := s.GetPlant(id)
 
 	// Create the sandbox node for the plant object
-	node := sandbox.AddNode(plant.Source)
+	node := sandbox.AddNode(plant.Source, meta)
 
 	s.lowerToDirt(&loc)
 

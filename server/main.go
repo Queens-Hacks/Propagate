@@ -16,9 +16,20 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.NewState(500, 125)
-	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
-	for i := 0; i < 50; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 50}, species)
+	species := s.AddSpecies(128, `
+while 1 do
+  if meta() == "" then
+    grow("up")
+    grow("up")
+    split("right", "right")
+  else
+    debug(meta())
+    grow("right")
+  end
+end
+`, "Me")
+	for i := 0; i < 1; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 100}, species)
 	}
 
 	port := ":4444"

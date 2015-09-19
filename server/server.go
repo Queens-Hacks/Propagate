@@ -16,7 +16,6 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 
 	var worldData []byte
 	conns := make([]chan []byte, 0)
-	newConns := make(chan net.Conn)
 
 	go handleConnections(ctx, newConns, port)
 

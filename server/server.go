@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -33,28 +34,27 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			c := make(chan []byte)
 			conns = append(conns, c)
 			sendDiffs(ctx, wd, c)
-			close(wd.c)
+			close(wd.done)
 		}
 	}
 }
 
-type void struct{}
-
 type webSocketDone struct {
-	ws *websocket.Conn
-	c  chan<- void
+	ws   *websocket.Conn
+	done chan struct{}
 }
 
 func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
-	done := make(chan void)
+	done := make(chan struct{})
 	newConns <- webSocketDone{ws, done}
 	var b []byte
 	err := websocket.Message.Receive(ws, b)
-	if err != nil {
+	if err == io.EOF {
+		close(done)
+	} else if err != nil {
 		logrus.Error(err)
 	}
-	logrus.Infof("Bytes received: %s", b)
 	<-done
 }
 
@@ -85,6 +85,9 @@ func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 			logrus.Infof("Sent diff to conn: %v", wd.ws)
 
 		case <-ctx.Done():
+			return
+
+		case <-wd.done:
 			return
 		}
 	}

@@ -54,66 +54,73 @@ type newStateInfo struct {
 
 const sunAccumulationRate int = 10
 
+func mkWorldState(s *state, _ *growthRoot) {
+	var ws sandbox.WorldState
+
+	worldState.Lighting[sandbox.Left] = 0
+	worldState.Lighting[sandbox.Right] = 0
+	worldState.Lighting[sandbox.Up] = 0
+	worldState.Lighting[sandbox.Down] = 0
+
+	return ws
+}
+
+func applyChanges(s *state, root *growthRoot, in sandbox.NewState) {
+	newX := root.Loc.X
+	newY := root.Loc.Y
+
+	// XXX newState should actually contain information about the type of
+	// operation performed
+	if newState.MoveDir == sandbox.Left {
+		newX -= 1
+	} else if newState.MoveDir == sandbox.Right {
+		newX += 1
+	} else if newState.MoveDir == sandbox.Up {
+		newY -= 1
+	} else if newState.MoveDir == sandbox.Down {
+		newY += 1
+	} else {
+		continue
+	}
+
+	// Can't move there, it's out of bounds!
+	if newY < 0 || newY > len(s.World) {
+		logrus.Info("newY out of bounds")
+		continue
+	}
+	if newX < 0 || newX > len(s.World[newY]) {
+		logrus.Info("newY out of bounds")
+		continue
+	}
+
+	// Update the tile entry in the world map with the new growth
+	tile := &s.World[newY][newX]
+	tile.T = plantTile
+	tile.Plant = &plantInfo{
+		PlantId: response.root.PlantId,
+		Parent:  response.root.Loc,
+		Age:     0,
+	}
+
+	// Move the growth root to the new location
+	response.root.Loc.X = newX
+	response.root.Loc.Y = newY
+}
+
 // This is called by a timer every n time units
 func SimulateTick(s *state) {
 	responses := make([]newStateInfo, len(s.roots))
 
-	// Go through each of the plants
+	// Tell each root to run until the next move operation
 	for i := range s.roots {
-		// XXX Actually generate a real worldstate - this is an empty one!
-		var worldState sandbox.WorldState
-
-		worldState.Lighting[sandbox.Left] = 0
-		worldState.Lighting[sandbox.Right] = 0
-		worldState.Lighting[sandbox.Up] = 0
-		worldState.Lighting[sandbox.Down] = 0
-
-		ch := s.roots[i].node.Update(worldState)
-		responses[i] = newStateInfo{ch, &s.roots[i]}
+		root := &s.roots[i]
+		ch := root.node.Update(mkWorldState(s, root))
+		responses[i] = newStateInfo{ch, root}
 	}
 
 	for _, response := range responses {
 		newState := <-response.ch
-
-		newX := response.root.Loc.X
-		newY := response.root.Loc.Y
-
-		// XXX newState should actually contain information about the type of
-		// operation performed
-		if newState.MoveDir == sandbox.Left {
-			newX -= 1
-		} else if newState.MoveDir == sandbox.Right {
-			newX += 1
-		} else if newState.MoveDir == sandbox.Up {
-			newY -= 1
-		} else if newState.MoveDir == sandbox.Down {
-			newY += 1
-		} else {
-			continue
-		}
-
-		// Can't move there, it's out of bounds!
-		if newY < 0 || newY > len(s.World) {
-			logrus.Info("newY out of bounds")
-			continue
-		}
-		if newX < 0 || newX > len(s.World[newY]) {
-			logrus.Info("newY out of bounds")
-			continue
-		}
-
-		// Update the tile entry in the world map with the new growth
-		tile := &s.World[newY][newX]
-		tile.T = plantTile
-		tile.Plant = &plantInfo{
-			PlantId: response.root.PlantId,
-			Parent:  response.root.Loc,
-			Age:     0,
-		}
-
-		// Move the growth root to the new location
-		response.root.Loc.X = newX
-		response.root.Loc.Y = newY
+		applyChanges(s, response.root, newState)
 	}
 }
 

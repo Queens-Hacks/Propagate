@@ -3,7 +3,7 @@ package sim
 import (
 	"fmt"
 
-	"github.com/Queens-Hacks/propagate/sandbox"
+	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
 )
 

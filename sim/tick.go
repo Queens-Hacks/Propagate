@@ -20,7 +20,7 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 
 	go func() {
 		// We want to run the thing every 500 milliseconds
-		tick := time.NewTicker(time.Millisecond * 500)
+		tick := time.NewTicker(time.Millisecond * 200)
 
 		for {
 			s.simulateTick()
@@ -187,13 +187,16 @@ func (s *State) simulateTick() {
 		// UpdateSpore returns true if it has planted the spore
 		spawned := s.UpdateSpore(&p)
 		// Unplanted spores are kept for next tick
-		if !spawned {
+		if spawned {
+			s.plantRelease(p.SpeciesId)
+		} else {
 			spores = append(spores, p)
 		}
 	}
 	s.diff.Spores = spores
 
 	surviving := make([]*Plant, 0, len(s.state.plants))
+	logrus.Infof("len of plants: %d", len(s.state.plants))
 	for _, p := range s.state.plants {
 		deltaEnergy := 0
 		for _ = range p.tiles {
@@ -207,22 +210,15 @@ func (s *State) simulateTick() {
 			for t := range p.tiles {
 				s.SetTile(t, Tile{AirTile, nil})
 			}
-			toKill := []*growthRoot{}
-			for r := range s.state.roots {
-				if r.Plant == p {
-					toKill = append(toKill, r)
-				}
+			for r := range p.roots {
+				s.HaltGrowth(r)
 			}
-			for _, k := range toKill {
-				s.HaltGrowth(k)
-			}
-
+			s.plantRelease(p.SpeciesId)
 		} else {
 			surviving = append(surviving, p)
 		}
-
 		p.Age++
 	}
-	s.state.plants = surviving
 
+	s.state.plants = surviving
 }

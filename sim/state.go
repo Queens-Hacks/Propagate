@@ -45,6 +45,7 @@ type Plant struct {
 	Age       int
 	SpeciesId string
 	tiles     map[Location]struct{}
+	roots     map[*growthRoot]struct{}
 }
 
 type Species struct {
@@ -74,6 +75,7 @@ type spore struct {
 
 func (s *State) AddSpore(loc Location, plantId string) {
 	// TODO add in bounds checks
+	s.plantAddRef(plantId)
 	s.diff.Spores = append(s.diff.Spores, spore{loc, plantId})
 }
 
@@ -184,7 +186,8 @@ func (s *State) SetTile(loc Location, new Tile) {
 }
 
 func (s *State) AddPlant(speciesId string) *Plant {
-	plant := &Plant{100, 0, speciesId, map[Location]struct{}{}}
+	s.plantAddRef(speciesId)
+	plant := &Plant{100, 0, speciesId, map[Location]struct{}{}, map[*growthRoot]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }
@@ -201,6 +204,7 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{plant.SpeciesId, loc, plant, node}
 	s.state.roots[&root] = struct{}{}
+	plant.roots[&root] = struct{}{}
 	// s.state.roots = append(s.state.roots, &root)
 
 	isUnderground := false

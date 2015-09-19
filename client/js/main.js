@@ -42,11 +42,11 @@ ws.onmessage = function(evt) {
 };
 
 ws.onopen = function() {
-    alert("Connection established, handle with function");
+    console.log("Connection established, handle with function");
 };
 
 
 ws.onclose = function() {
     // websocket is closed.
-    alert("Connection is closed...");
+    console.log("Connection is closed...");
 };

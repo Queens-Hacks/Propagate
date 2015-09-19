@@ -1,19 +1,21 @@
-
-
 #art {
-  width: 90%;
-  margin: auto;
-  margin-top: 20px;
-  /*padding: 2px;*/
-  display:block;
-  /*height: 90vh;*/
-  /*width: 100%;*/
-  /*height: 100%;*/
-  /*border-width: 1px;*/
-  border-style: solid;
-  /*border-color: black;*/
+    width: 90%;
+    margin: auto;
+    margin-top: 20px;
+    /*padding: 2px;*/
+    display: block;
+    /*height: 90vh;*/
+    /*width: 100%;*/
+    /*height: 100%;*/
+    /*border-width: 1px;*/
+    border-style: solid;
+    /*border-color: black;*/
+}
+
+#codex {
+  padding: 30px;
 }
 
 body {
-background-color: #E6FFDB;	
+    background-color: #E6FFDB;
 }

@@ -1,5 +1,7 @@
 var husl = require('husl')
 
+var codex = document.getElementById('codex');
+
 var canvas = document.getElementById('art');
 var ctx = canvas.getContext('2d');
 
@@ -50,7 +52,7 @@ ws.onmessage = function(evt) {
 
             // ctx.canvas.width = window.innerWidth;
             // ctx.canvas.height = window.innerHeight;
-            
+
             sx = canvas.width / gameheight;
             sy = canvas.height / gamewidth;
 

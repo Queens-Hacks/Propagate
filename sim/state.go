@@ -1,4 +1,4 @@
-package simulation
+package sim
 
 type tileType int
 

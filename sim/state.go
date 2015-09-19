@@ -63,6 +63,11 @@ func SimulateTick(s *state) {
 		// XXX Actually generate a real worldstate - this is an empty one!
 		var worldState sandbox.WorldState
 
+		worldState.Lighting[sandbox.Left] = 0
+		worldState.Lighting[sandbox.Right] = 0
+		worldState.Lighting[sandbox.Up] = 0
+		worldState.Lighting[sandbox.Down] = 0
+
 		ch := s.roots[i].node.Update(worldState)
 		responses[i] = newStateInfo{ch, &s.roots[i]}
 	}

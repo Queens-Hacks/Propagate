@@ -2,14 +2,15 @@ package sandbox
 
 import (
 	"github.com/Shopify/go-lua"
+	"strings"
 )
 
 type WorldState struct {
-	i int
+	lighting map[Direction]float64
 }
 
 type NewState struct {
-	i int
+	moveDir Direction
 }
 
 type Node struct {
@@ -56,7 +57,7 @@ const (
 	Down
 )
 
-func addDirFunc(l *lua.State, name string, fn func(Direction) int) {
+func addDirFunc(l *lua.State, name string, fn func(*lua.State, Direction) int) {
 	l.PushGoFunction(func(l *lua.State) int {
 		argCount := l.Top()
 		if argCount != 1 {
@@ -64,27 +65,51 @@ func addDirFunc(l *lua.State, name string, fn func(Direction) int) {
 			l.Error()
 			return 0
 		}
-		s, err := l.ToString(1) // toLowerCAse
-		if err != nil {
+
+		s, ok := l.ToString(1)
+		if !ok {
 			l.PushString("incorrect type of argument") // XXX Include name of function
 			l.Error()
 			return 0
 		}
 
+		var d Direction
 		if s == "left" {
-
+			d = Left
 		} else if s == "right" {
+			d = Right
 		} else if s == "up" {
+			d = Up
 		} else if s == "down" {
+			d = Down
 		}
 
+		return fn(l, d)
 	})
+
+	l.SetGlobal(name)
 }
 
 func runNode(node internalNode) {
 	l := lua.NewState()
-	l.PushGoFunction(func(l *lua.State) int {
 
+	world := <-node.resume
+
+	addDirFunc(l, "grow", func(l *lua.State, d Direction) int {
+		var state NewState
+		state.moveDir = d
+
+		// Send a response and wait
+		node.respond <- state
+		world = <-node.resume
+
+		return 0
 	})
+
+	addDirFunc(l, "lighting", func(l *lua.State, d Direction) int {
+		l.PushNumber(world.lighting[d])
+		return 1
+	})
+
 	lua.LoadString(l, node.program)
 }

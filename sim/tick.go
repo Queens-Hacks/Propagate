@@ -150,7 +150,10 @@ func (s *State) simulateTick() {
 	}
 
 	for _, response := range responses {
-		newState := <-response.ch
+		newState, ok := <-response.ch
+		if !ok {
+			continue
+		}
 		s.applyChanges(response.root, newState)
 	}
 

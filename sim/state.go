@@ -42,6 +42,7 @@ type Tile struct {
 
 type Plant struct {
 	Energy    int
+	Age       int
 	SpeciesId string
 	tiles     map[*Tile]struct{}
 }
@@ -170,7 +171,6 @@ func (s *State) SetTile(loc Location, new Tile) {
 	// XXX FIXME - this is a hack because we get index errors so often here...
 	loc = boundsCheck(loc, s.Height(), s.Width())
 
-	logrus.Info(loc, new)
 	// Collision detection
 	if !reasonableSetTile(s.GetTile(loc), &new) {
 		return
@@ -193,7 +193,7 @@ func (s *State) SetTile(loc Location, new Tile) {
 }
 
 func (s *State) AddPlant(speciesId string) *Plant {
-	plant := &Plant{100, speciesId, map[*Tile]struct{}{}}
+	plant := &Plant{100, 0, speciesId, map[*Tile]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }
@@ -225,18 +225,7 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 }
 
 func (s *State) HaltGrowth(gr *growthRoot) {
+	logrus.Infof("Halting growthroot!")
 	gr.node.Halt()
 	delete(s.state.roots, gr)
-}
-
-func (s *State) lowerToDirt(loc *Location) {
-	var base int
-	for y := 0; y < s.Height(); y++ {
-		t := s.GetTile(Location{loc.X, y})
-		if t.Type == DirtTile {
-			base = y - 1
-			break
-		}
-	}
-	loc.Y = base
 }

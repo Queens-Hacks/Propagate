@@ -182,4 +182,34 @@ func (s *State) simulateTick() {
 		}
 	}
 	s.diff.Spores = spores
+
+	surviving := make([]*Plant, 0, len(s.state.plants))
+	for _, p := range s.state.plants {
+		deltaEnergy := 0
+		for _ = range p.tiles {
+			deltaEnergy += 10
+		}
+
+		p.Energy += deltaEnergy
+		p.Energy -= (p.Age * p.Age)
+
+		if p.Energy < 0 {
+			for t := range p.tiles {
+				t.Type = AirTile
+				t.Extra = nil
+			}
+			for r := range s.state.roots {
+				if r.Plant == p {
+					s.HaltGrowth(r)
+				}
+			}
+
+		} else {
+			surviving = append(surviving, p)
+		}
+
+		p.Age++
+	}
+	s.state.plants = surviving
+
 }

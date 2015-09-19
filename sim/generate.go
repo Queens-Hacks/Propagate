@@ -44,7 +44,7 @@ func NewState(width, height int) *State {
 	}
 
 	return &State{
-		gameState{world, map[string]*Species{}, []*Plant{}, []*growthRoot{}, 0},
+		gameState{world, map[string]*Species{}, []*Plant{}, map[*growthRoot]struct{}{}, 0},
 		diff{[]tileDiff{}, map[string]*Species{}, []string{}, []spore{}},
 	}
 }

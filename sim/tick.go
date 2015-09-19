@@ -140,13 +140,23 @@ type newStateInfo struct {
 
 // This is called by a timer every n time units
 func (s *State) simulateTick() {
-	responses := make([]newStateInfo, len(s.state.roots))
+	responses := []newStateInfo{}
+	deadNodes := []*growthRoot{}
 
 	// Tell each root to run until the next move operation
-	for i := range s.state.roots {
-		root := s.state.roots[i]
-		ch := root.node.Update(s.mkWorldState(root))
-		responses[i] = newStateInfo{ch, root}
+	for root := range s.state.roots {
+		ch, ok := root.node.Update(s.mkWorldState(root))
+		if !ok {
+			// We have to remove the node later
+			deadNodes = append(deadNodes, root)
+			continue
+		}
+
+		responses = append(responses, newStateInfo{ch, root})
+	}
+
+	for _, dead := range deadNodes {
+		delete(s.state.roots, dead)
 	}
 
 	for _, response := range responses {

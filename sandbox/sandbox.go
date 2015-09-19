@@ -32,13 +32,22 @@ type Node struct {
 	ctx     context.Context
 }
 
-func (n *Node) Update(state WorldState) <-chan NewState {
+func (n *Node) Update(state WorldState) (<-chan NewState, bool) {
+	ok := true
 	select {
 	case n.resume <- state:
 	case <-n.ctx.Done():
+		ok = false
 	}
 
-	return n.respond
+	return n.respond, ok
+}
+
+// Kill the thread - returns a channel which will be fulfilled when the thread
+// is dead
+func (n *Node) Halt() <-chan struct{} {
+	close(n.resume)
+	return n.ctx.Done()
 }
 
 func AddNode(program string, meta string) *Node {
@@ -265,6 +274,15 @@ func openSafeLibs(l *lua.State, preloaded ...lua.RegistryFunction) {
 	l.Pop(1)
 }
 
+func respond(node *internalNode, state NewState) WorldState {
+	// This could panic if the respond thread is closed. In this case, we want to
+	// be killing the thread, so we're good!
+	// Panicking here will unwind to the recover in runNode, which is what we want
+
+	node.respond <- state
+	return <-node.resume
+}
+
 func runNode(node internalNode) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -286,10 +304,7 @@ func runNode(node internalNode) {
 		state.Dir = d
 		state.Operation = Move
 
-		// Send a response and wait
-		node.respond <- state
-		world = <-node.resume
-
+		world = respond(&node, state)
 		return 0
 	})
 
@@ -299,9 +314,7 @@ func runNode(node internalNode) {
 		state.Dir = Undef
 		state.Operation = Wait
 
-		node.respond <- state
-		world = <-node.resume
-
+		world = respond(&node, state)
 		return 0
 	})
 
@@ -312,10 +325,7 @@ func runNode(node internalNode) {
 		state.Meta = s
 		state.Operation = Split
 
-		// Send a response and wait
-		node.respond <- state
-		world = <-node.resume
-
+		world = respond(&node, state)
 		return 0
 	})
 

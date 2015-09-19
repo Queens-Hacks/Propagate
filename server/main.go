@@ -17,8 +17,8 @@ func main() {
 
 	s := sim.NewState(500, 125)
 	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
-	for i := 0; i < 100; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 100}, species)
+	for i := 0; i < 50; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 50}, species)
 	}
 
 	port := ":4444"

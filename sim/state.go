@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
-	"github.com/Sirupsen/logrus"
 )
 
 type TileType int
@@ -68,7 +67,6 @@ func (s *State) AddSpore(loc Location, plantId string) {
 }
 
 func (s *State) UpdateSpore(p *spore) bool {
-	logrus.Infof("spore at location %v", p.Location)
 	dx := rand.Intn(3) - 1
 	dy := rand.Intn(2)
 	p.Location.X += dx

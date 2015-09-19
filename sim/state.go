@@ -44,7 +44,7 @@ type Plant struct {
 	Energy    int
 	Age       int
 	SpeciesId string
-	tiles     map[*Tile]struct{}
+	tiles     map[Location]struct{}
 }
 
 type Species struct {
@@ -177,14 +177,14 @@ func (s *State) SetTile(loc Location, new Tile) {
 	}
 
 	// Manage the addref and releases
-	old := s.GetTile(loc)
 	if new.Extra != nil {
 		s.plantAddRef(new.Extra.SpeciesId)
-		new.Extra.Plant.tiles[old] = struct{}{}
+		new.Extra.Plant.tiles[loc] = struct{}{}
 	}
+	old := s.GetTile(loc)
 	if old.Extra != nil {
 		s.plantRelease(old.Extra.SpeciesId)
-		delete(new.Extra.Plant.tiles, old)
+		delete(new.Extra.Plant.tiles, loc)
 	}
 
 	// Actually update the tile and record the tilediffs

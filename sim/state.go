@@ -1,37 +1,42 @@
 package sim
 
 import (
-	"github.com/Queens-Hacks/propagate/sandbox"
+	"fmt"
+
+	"encoding/json"
+	"sync"
+
+	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
 )
 
-type tileType int
+type TileType int
 
 const (
-	dirtTile tileType = iota
-	airTile
-	plantTile
+	DirtTile TileType = iota
+	AirTile
+	PlantTile
 )
 
-type Location struct {
-	X int
-	Y int
-}
-
 type growthRoot struct {
-	PlantId int
+	PlantId string
 	Loc     Location
 	node    *sandbox.Node
 }
 
+type Location struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
 type plantInfo struct {
-	PlantId int      `json: "plantId"`
+	PlantId string   `json: "plantId"`
 	Parent  Location `json: "parent"`
 	Age     int      `json: "age"`
 }
 
-type tile struct {
-	T     tileType   `json:"tileType"`
+type Tile struct {
+	T     TileType   `json:"tileType"`
 	Plant *plantInfo `json:"plant"`
 }
 
@@ -39,100 +44,138 @@ type plant struct {
 	Color  string `json:"color"`
 	Source string `json:"source"`
 	Author string `json:"author"`
+	refCnt int
 }
 
-type state struct {
-	World  [][]tile `json:"world"`
-	Plants []plant  `json:"plants"`
-	roots  []growthRoot
+type gameState struct {
+	World    [][]*Tile         `json:"world"`
+	Plants   map[string]*plant `json:"plants"`
+	roots    []*growthRoot
+	maxPlant int
 }
 
-type newStateInfo struct {
-	ch   <-chan sandbox.NewState
-	root *growthRoot
+type tileDiff struct {
+	Loc  Location `json:"loc"`
+	Tile Tile     `json:"tile"`
 }
 
-const sunAccumulationRate int = 10
+type diff struct {
+	TileDiffs     []tileDiff        `json:"tileDiff"`
+	NewPlants     map[string]*plant `json:"newPlants"`
+	RemovedPlants []string          `json:"removedPlants"`
+}
 
-// This is called by a timer every n time units
-func SimulateTick(s *state) {
-	responses := make([]newStateInfo, len(s.roots))
+type State struct {
+	state        gameState
+	diff         diff
+	lock         sync.RWMutex
+	marshalState []byte
+	marshalDiff  []byte
+}
 
-	// Go through each of the plants
-	for i := range s.roots {
-		// XXX Actually generate a real worldstate - this is an empty one!
-		var worldState sandbox.WorldState
+// Finalize the current state information
+func (s *State) Finalize() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
-		worldState.Lighting[sandbox.Left] = 0
-		worldState.Lighting[sandbox.Right] = 0
-		worldState.Lighting[sandbox.Up] = 0
-		worldState.Lighting[sandbox.Down] = 0
-
-		ch := s.roots[i].node.Update(worldState)
-		responses[i] = newStateInfo{ch, &s.roots[i]}
+	md, err := json.Marshal(s.diff)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
-	for _, response := range responses {
-		newState := <-response.ch
+	ms, err := json.Marshal(s.state)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
-		newX := response.root.Loc.X
-		newY := response.root.Loc.Y
+	s.marshalDiff = md
+	s.marshalState = ms
 
-		// XXX newState should actually contain information about the type of
-		// operation performed
-		if newState.MoveDir == sandbox.Left {
-			newX -= 1
-		} else if newState.MoveDir == sandbox.Right {
-			newX += 1
-		} else if newState.MoveDir == sandbox.Up {
-			newY -= 1
-		} else if newState.MoveDir == sandbox.Down {
-			newY += 1
-		} else {
-			continue
-		}
+	newDiff := diff{[]tileDiff{}, map[string]*plant{}, []string{}}
+	s.diff = newDiff
+}
 
-		// Can't move there, it's out of bounds!
-		if newY < 0 || newY > len(s.World) {
-			logrus.Info("newY out of bounds")
-			continue
-		}
-		if newX < 0 || newX > len(s.World[newY]) {
-			logrus.Info("newY out of bounds")
-			continue
-		}
+func (s *State) MarshalState() []byte {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.marshalState
+}
 
-		// Update the tile entry in the world map with the new growth
-		tile := &s.World[newY][newX]
-		tile.T = plantTile
-		tile.Plant = &plantInfo{
-			PlantId: response.root.PlantId,
-			Parent:  response.root.Loc,
-			Age:     0,
-		}
+func (s *State) MarshalDiff() []byte {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.marshalDiff
+}
 
-		// Move the growth root to the new location
-		response.root.Loc.X = newX
-		response.root.Loc.Y = newY
+// Records a reference to a plant, causing the plant to be kept in the structure
+func (s *State) plantAddRef(plantId string) {
+	s.getPlant(plantId).refCnt++
+}
+
+// Records a reference to a plant, causing the plant to be removed from the structure
+func (s *State) plantRelease(plantId string) {
+	plant := s.getPlant(plantId)
+	plant.refCnt--
+
+	// If the reference count has reached zero, remove the plant from the thing
+	if plant.refCnt <= 0 {
+		s.diff.RemovedPlants = append(s.diff.RemovedPlants, plantId)
+		delete(s.state.Plants, plantId)
 	}
 }
 
-func AddPlant(s *state, loc Location, id int) *growthRoot {
-	// Get the plant information for stuff like the source code
-	plant := &s.Plants[id]
+func (s *State) Width() int {
+	return len(s.state.World[0])
+}
+
+func (s *State) Height() int {
+	return len(s.state.World)
+}
+
+func (s *State) getPlant(plantId string) *plant {
+	return s.state.Plants[plantId]
+}
+
+// Adds a species to the stateAndDiff, and returns the string key for the plant
+// This plant is created with a refCnt of zero, but will not be dropped until
+// its reference count hits zero again.
+func (s *State) addSpecies(p plant) string {
+	s.state.maxPlant += 1
+	key := fmt.Sprintf("%d", s.state.maxPlant)
+	s.diff.NewPlants[key] = &p
+	s.state.Plants[key] = &p
+	return key
+}
+
+// Set the tile at a location to a new tile
+func (s *State) SetTile(loc Location, new Tile) {
+	// Manage the addref and releases
+	if new.Plant != nil {
+		s.plantAddRef(new.Plant.PlantId)
+	}
+	old := s.state.World[loc.Y][loc.X]
+	if old.Plant != nil {
+		s.plantRelease(old.Plant.PlantId)
+	}
+
+	// Actually update the tile and record the tilediffs
+	*old = new
+	s.diff.TileDiffs = append(s.diff.TileDiffs, tileDiff{loc, new})
+}
+
+func (s *State) addPlant(loc Location, id string) *growthRoot {
+	plant := s.getPlant(id)
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)
 
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{id, loc, node}
-	s.roots = append(s.roots, root)
+	s.state.roots = append(s.state.roots, &root)
 
-	// Update the tile under the new root node
-	tile := &s.World[loc.Y][loc.X]
-	tile.T = plantTile
-	tile.Plant = &plantInfo{id, loc, 0}
+	// Set the tile at the base of the plant to a plant tile
+	s.SetTile(loc, Tile{PlantTile, &plantInfo{id, loc, 0}})
 
 	// Return a reference to the root node we previously appended
-	return &s.roots[len(s.roots)-1]
+	return &root
 }

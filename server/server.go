@@ -1,7 +1,7 @@
 package main
 
 import (
-	"net"
+	"io"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -25,31 +25,41 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 			worldData = data
 
 		case data := <-diff:
+			logrus.Info("sending diff to all clients")
 			for _, c := range conns {
 				c <- data
 			}
 
 		case wd := <-newConns:
 			go sendWorld(wd, worldData)
-			// c := make(chan []byte)
-			// conns = append(conns, c)
-			// go sendDiffs(ctx, conn, c)
+			c := make(chan []byte)
+			conns = append(conns, c)
+			logrus.Info("starting diff loop")
+			go func() { sendDiffs(ctx, wd, c); close(wd.done) }()
 		}
 	}
 }
 
-type void struct{}
-
 type webSocketDone struct {
-	ws *websocket.Conn
-	c  chan<- void
+	ws   *websocket.Conn
+	done chan struct{}
+	ctx  context.Context
 }
 
 func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
-	done := make(chan void)
-	newConns <- webSocketDone{ws, done}
+	done := make(chan struct{})
+	ctx, cancel := context.WithCancel(context.Background())
+	newConns <- webSocketDone{ws, done, ctx}
+	var b []byte
+	err := websocket.Message.Receive(ws, b)
+	if err == io.EOF {
+		cancel()
+	} else if err != nil {
+		logrus.Error(err)
+	}
 	<-done
+	logrus.Infof("Closing websocket: %v", ws)
 }
 
 func handleConnections(port string) {
@@ -62,24 +72,27 @@ func handleConnections(port string) {
 
 func sendWorld(wd webSocketDone, data []byte) {
 	err := websocket.Message.Send(wd.ws, data)
-	logrus.Infof("Checking for error", wd.ws)
 	if err != nil {
 		logrus.Error(err)
 	}
 	logrus.Infof("Sent world to conn: %v", wd.ws)
-	close(wd.c)
 }
 
-func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {
+func sendDiffs(ctx context.Context, wd webSocketDone, diff chan []byte) {
 	for {
 		select {
 		case data := <-diff:
-			_, err := conn.Write(data)
+			logrus.Info("client being sent diff")
+			err := websocket.Message.Send(wd.ws, data)
 			if err != nil {
 				logrus.Error(err)
 			}
-			logrus.Infof("Sent diff to conn: %v", conn)
+			logrus.Infof("Sent diff to conn: %v", wd.ws)
+
 		case <-ctx.Done():
+			return
+
+		case <-wd.ctx.Done():
 			return
 		}
 	}

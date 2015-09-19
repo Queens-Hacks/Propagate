@@ -1,19 +1,30 @@
-
-
 #art {
-  width: 90%;
-  margin: auto;
-  margin-top: 20px;
-  /*padding: 2px;*/
-  display:block;
-  /*height: 90vh;*/
-  /*width: 100%;*/
-  /*height: 100%;*/
-  /*border-width: 1px;*/
+    width: 90%;
+    margin: auto;
+    margin-top: 20px;
+    /*padding: 2px;*/
+    display: block;
+    /*height: 90vh;*/
+    /*width: 100%;*/
+    /*height: 100%;*/
+    /*border-width: 1px;*/
+    border-style: solid;
+    /*border-color: black;*/
+}
+
+#codex {
+  padding: 30px;
+}
+
+.card{
+  padding: 6px;
+  margin-bottom: 10px;
+  background-color: #D1D0CE;
   border-style: solid;
-  /*border-color: black;*/
+  border-radius: 3px;
+  border-color: #87AFC7;
 }
 
 body {
-background-color: #4C8282;	
+    background-color: #E6FFDB;
 }

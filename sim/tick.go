@@ -1,11 +1,47 @@
 package sim
 
 import (
+	"encoding/json"
 	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
+	"time"
 )
 
-func mkWorldState(s *State, _ *growthRoot) sandbox.WorldState {
+type MarshalledState struct {
+	State []byte
+	Diff  []byte
+}
+
+// After calling this function it is no longer safe to do anything with s from
+// outside of the simulation
+func (s *State) StartSimulate() <-chan MarshalledState {
+	ch := make(chan MarshalledState)
+
+	go func() {
+		// We want to run the thing every 500 milliseconds
+		tick := time.NewTicker(time.Millisecond * 500)
+
+		for {
+			s.simulateTick()
+
+			md, err := json.Marshal(s.diff)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			ms, err := json.Marshal(s.state)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			ch <- MarshalledState{md, ms}
+			<-tick.C
+		}
+	}()
+
+	return ch
+}
+
+func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
 
 	ws.Lighting[sandbox.Left] = 0
@@ -16,11 +52,9 @@ func mkWorldState(s *State, _ *growthRoot) sandbox.WorldState {
 	return ws
 }
 
-func applyChanges(s *State, root *growthRoot, in sandbox.NewState) {
+func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 	new := root.Loc
 
-	// XXX in should actually contain information about the type of
-	// operation performed
 	if in.MoveDir == sandbox.Left {
 		new.X -= 1
 	} else if in.MoveDir == sandbox.Right {
@@ -67,12 +101,12 @@ func (s *State) simulateTick() {
 	// Tell each root to run until the next move operation
 	for i := range s.state.roots {
 		root := s.state.roots[i]
-		ch := root.node.Update(mkWorldState(s, root))
+		ch := root.node.Update(s.mkWorldState(root))
 		responses[i] = newStateInfo{ch, root}
 	}
 
 	for _, response := range responses {
 		newState := <-response.ch
-		applyChanges(s, response.root, newState)
+		s.applyChanges(response.root, newState)
 	}
 }

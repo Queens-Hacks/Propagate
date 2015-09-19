@@ -1,8 +1,26 @@
 package sim
 
-import (
-	"sync"
-)
+import ()
+
+func NewState(width, height int) *State {
+	var s State
+
+	world := make([][]*Tile, height, width)
+	for y := 0; y < height; y++ {
+		for x := 0; x < height; x++ {
+			t := AirTile
+			if y < height/2 {
+				t = DirtTile
+			}
+
+			world[x][y] = &Tile{T: t}
+		}
+	}
+
+	s.state.World = world
+
+	return &s
+}
 
 func SimpleState(x, y int) State {
 	world := make([][]*Tile, 0, y)
@@ -17,9 +35,6 @@ func SimpleState(x, y int) State {
 	return State{
 		gameState{world, map[string]*plant{}, []*growthRoot{}, 0},
 		diff{[]tileDiff{}, map[string]*plant{}, []string{}},
-		sync.RWMutex{},
-		[]byte{},
-		[]byte{},
 	}
 }
 

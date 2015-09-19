@@ -2,12 +2,7 @@ package sim
 
 import (
 	"fmt"
-
-	"encoding/json"
-	"sync"
-
 	"github.com/Queens-Hacks/Propagate/sandbox"
-	"github.com/Sirupsen/logrus"
 )
 
 type TileType int
@@ -66,55 +61,18 @@ type diff struct {
 }
 
 type State struct {
-	state        gameState
-	diff         diff
-	lock         sync.RWMutex
-	marshalState []byte
-	marshalDiff  []byte
-}
-
-// Finalize the current state information
-func (s *State) Finalize() {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	md, err := json.Marshal(s.diff)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	ms, err := json.Marshal(s.state)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	s.marshalDiff = md
-	s.marshalState = ms
-
-	newDiff := diff{[]tileDiff{}, map[string]*plant{}, []string{}}
-	s.diff = newDiff
-}
-
-func (s *State) MarshalState() []byte {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	return s.marshalState
-}
-
-func (s *State) MarshalDiff() []byte {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	return s.marshalDiff
+	state gameState
+	diff  diff
 }
 
 // Records a reference to a plant, causing the plant to be kept in the structure
 func (s *State) plantAddRef(plantId string) {
-	s.getPlant(plantId).refCnt++
+	s.GetPlant(plantId).refCnt++
 }
 
 // Records a reference to a plant, causing the plant to be removed from the structure
 func (s *State) plantRelease(plantId string) {
-	plant := s.getPlant(plantId)
+	plant := s.GetPlant(plantId)
 	plant.refCnt--
 
 	// If the reference count has reached zero, remove the plant from the thing
@@ -132,14 +90,14 @@ func (s *State) Height() int {
 	return len(s.state.World)
 }
 
-func (s *State) getPlant(plantId string) *plant {
+func (s *State) GetPlant(plantId string) *plant {
 	return s.state.Plants[plantId]
 }
 
 // Adds a species to the stateAndDiff, and returns the string key for the plant
 // This plant is created with a refCnt of zero, but will not be dropped until
 // its reference count hits zero again.
-func (s *State) addSpecies(p plant) string {
+func (s *State) AddSpecies(p plant) string {
 	s.state.maxPlant += 1
 	key := fmt.Sprintf("%d", s.state.maxPlant)
 	s.diff.NewPlants[key] = &p
@@ -163,8 +121,8 @@ func (s *State) SetTile(loc Location, new Tile) {
 	s.diff.TileDiffs = append(s.diff.TileDiffs, tileDiff{loc, new})
 }
 
-func (s *State) addPlant(loc Location, id string) *growthRoot {
-	plant := s.getPlant(id)
+func (s *State) AddPlant(loc Location, id string) *growthRoot {
+	plant := s.GetPlant(id)
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source)

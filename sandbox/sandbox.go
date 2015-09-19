@@ -1,7 +1,9 @@
-package sandbox
+package main
 
 import (
+	"fmt"
 	"github.com/Shopify/go-lua"
+	"time"
 )
 
 type WorldState struct {
@@ -32,11 +34,13 @@ func AddNode(program string) *Node {
 		respond: respond,
 	}
 
-	go runNode(internalNode{
+	in := internalNode{
 		program: program,
 		resume:  resume,
 		respond: respond,
-	})
+	}
+
+	go runNode(in)
 
 	return &n
 }
@@ -55,6 +59,22 @@ const (
 	Up
 	Down
 )
+
+func watchLuaThread(l *lua.State, d time.Duration) {
+	end_time := time.Now().Add(d)
+	setLuaTimeoutHook(l, 500, func() {
+		if time.Now().After(end_time) {
+			panic("AAAAHHHH!!!")
+		}
+	})
+	l.ProtectedCall(0, lua.MultipleReturns, 0)
+}
+
+func setLuaTimeoutHook(l *lua.State, count int, callback func()) {
+	lua.SetDebugHook(l, func(l *lua.State, ar lua.Debug) {
+		callback()
+	}, lua.MaskCount, count)
+}
 
 func addIntFunc(l *lua.State, name string, fn func(*lua.State, int) int) {
 	l.PushGoFunction(func(l *lua.State) int {
@@ -125,6 +145,12 @@ func addDirFunc(l *lua.State, name string, fn func(*lua.State, Direction) int) {
 }
 
 func runNode(node internalNode) {
+	defer func() {
+		if r := recover(); r != nil {
+			close(node.respond)
+		}
+	}()
+
 	l := lua.NewState()
 
 	world := <-node.resume
@@ -146,4 +172,5 @@ func runNode(node internalNode) {
 	})
 
 	lua.LoadString(l, node.program)
+	watchLuaThread(l, time.Duration(500)*time.Millisecond)
 }

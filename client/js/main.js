@@ -8,7 +8,7 @@ var ctx = canvas.getContext('2d');
 
 var sx = canvas.width / 50;
 var sy = canvas.height / 50;
-
+var plants = [];
 // var colorMap = [30, 210, 160];
 var colorMap = [husl.toHex(30, 50, 50),
     husl.toHex(210, 50, 50),
@@ -21,7 +21,7 @@ function render(world) {
 
     for (var y = 0; y < world.length; y++) {
         for (var x = 0; x < world[y].length; x++) {
-            drawTile(x, y, world[y][x]['tileType']);
+            drawTile(x, y, world[y][x]);
         }
     }
 
@@ -32,13 +32,18 @@ function renderDelta(delta) {
     for (var i = 0; i < tiles.length; i++) {
         // tiles[i]['tile']['tileType'] = Math.round(Math.random() * 2);
         console.log(tiles[i]['tile']['tileType']);
-        drawTile(tiles[i]['loc']['x'], tiles[i]['loc']['y'], tiles[i]['tile']['tileType']);
+        drawTile(tiles[i]['loc']['x'], tiles[i]['loc']['y'], tiles[i]['tile']);
 
     }
 }
 
-function drawTile(x, y, type) {
-    ctx.fillStyle = colorMap[type];
+function drawTile(x, y, tile) {
+    // if (tile['tileType'] === 2) {
+
+    //     ctx.fillStyle = husl.toHex(plants[tile['plantInfo']]['color'], 70, 70);
+
+    // } else
+        ctx.fillStyle = colorMap[tile['tileType']];
     ctx.fillRect(x * sx, y * sy, sx, sy);
 }
 
@@ -51,10 +56,11 @@ ws.onmessage = function(evt) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         json = JSON.parse(reader.result)
-            console.log(json);
+        console.log(json);
 
         if (firstFrame) {
-
+            updateCodex(json['plants']);
+            plants = json['plants'];
             gameheight = json['world'].length;
             gamewidth = json['world'][0].length;
 
@@ -102,8 +108,7 @@ function updateCodex(plants) {
     codex.innerHTML = newHtml;
 }
 
-var fakeplants = [];
-fakeplants.push("test");
-fakeplants.push("test2");
+// var fakeplants = [];
+// fakeplants.push("test");
+// fakeplants.push("test2");
 // fakeplants.push({firstName:"John", lastName:"Doe", age:50, eyeColor:"blue"});
-updateCodex(fakeplants);

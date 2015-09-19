@@ -84,6 +84,14 @@ func (s *state) plantRelease(plantId string) {
 	}
 }
 
+func (s *state) Width() int {
+	return len(s.State.World[0])
+}
+
+func (s *state) Height() int {
+	return len(s.State.World)
+}
+
 func (s *state) GetPlant(plantId string) *plant {
 	return s.State.Plants[plantId]
 }
@@ -152,11 +160,11 @@ func applyChanges(s *state, root *growthRoot, in sandbox.NewState) {
 	}
 
 	// Can't move there, it's out of bounds!
-	if new.Y < 0 || new.Y > len(s.State.World) {
+	if new.Y < 0 || new.Y > s.Height() {
 		logrus.Info("newY out of bounds")
 		return
 	}
-	if new.X < 0 || new.X > len(s.State.World[new.Y]) {
+	if new.X < 0 || new.X > s.Width() {
 		logrus.Info("newY out of bounds")
 		return
 	}

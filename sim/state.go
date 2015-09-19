@@ -180,8 +180,6 @@ func (s *State) AddPlant(loc Location, id string, meta string) *growthRoot {
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(plant.Source, meta)
 
-	s.lowerToDirt(&loc)
-
 	// Create the root node for the object, and append it to the roots list
 	root := growthRoot{id, loc, node}
 	s.state.roots = append(s.state.roots, &root)

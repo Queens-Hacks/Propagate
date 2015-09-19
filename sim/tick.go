@@ -80,22 +80,22 @@ func boundsCheck(loc Location, mh int, mw int) Location {
 	return loc
 }
 
-func MoveGrowthNodeToLocation(loc Location, in sandbox.NewState, mh int, mw int) Location {
+func (s *State) DirectionToLocation(loc Location, dir sandbox.Direction) Location {
 	new := loc
 
-	if in.Dir == sandbox.Left {
+	if dir == sandbox.Left {
 		new.X -= 1
-	} else if in.Dir == sandbox.Right {
+	} else if dir == sandbox.Right {
 		new.X += 1
-	} else if in.Dir == sandbox.Up {
+	} else if dir == sandbox.Up {
 		new.Y -= 1
-	} else if in.Dir == sandbox.Down {
+	} else if dir == sandbox.Down {
 		new.Y += 1
 	} else {
 		return loc
 	}
 
-	new = boundsCheck(new, mh, mw)
+	new = boundsCheck(new, s.Height(), s.Width())
 
 	return new // new looks good!
 }
@@ -104,18 +104,14 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 	new := root.Loc
 
 	if in.Operation == sandbox.Move {
-		new = MoveGrowthNodeToLocation(root.Loc, in, s.Height(), s.Width())
+		new = s.DirectionToLocation(root.Loc, in.Dir)
 		s.SetTile(new, Tile{PlantTile, &plantInfo{
 			PlantId: root.PlantId,
 			Parent:  root.Loc,
 		}})
 	} else if in.Operation == sandbox.Split {
-		tmp := MoveGrowthNodeToLocation(root.Loc, in, s.Height(), s.Width())
+		tmp := s.DirectionToLocation(root.Loc, in.Dir)
 		s.SetTile(tmp, Tile{PlantTile, &plantInfo{
-			PlantId: root.PlantId,
-			Parent:  root.Loc,
-		}})
-		s.SetTile(root.Loc, Tile{PlantTile, &plantInfo{
 			PlantId: root.PlantId,
 			Parent:  root.Loc,
 		}})
@@ -126,6 +122,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		// that was easy
 		return
 	} else {
+		logrus.Warn("Unrecognized Operation")
 		return
 	}
 

@@ -38,14 +38,16 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 	}
 }
 
+type void struct{}
+
 type webSocketDone struct {
 	ws *websocket.Conn
-	c  chan struct{}
+	c  chan<- void
 }
 
 func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
-	done := make(chan struct{})
+	done := make(chan void)
 	newConns <- webSocketDone{ws, done}
 	<-done
 }

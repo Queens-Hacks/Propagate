@@ -53,6 +53,7 @@ func handleConnections(port string) {
 
 func sendWorld(ws *websocket.Conn, data []byte) {
 	err := websocket.Message.Send(ws, data)
+	logrus.Infof("Checking for error", ws)
 	if err != nil {
 		logrus.Error(err)
 	}

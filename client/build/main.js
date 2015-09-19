@@ -24,8 +24,10 @@ function render(world) {
 }
 
 function renderDelta(delta) {
-    for (var i = 0; i < delta.length; i++) {
-        drawTile(delta[i]['loc']['x'], delta[i]['loc']['x'], delta['i']['tileType']);
+    tiles = delta['tileDiff'];
+    for (var i = 0; i < tiles.length; i++) {
+    	tiles[i]['tile']['tileType'] = Math.round(Math.random());
+        drawTile(tiles[i]['loc']['x'], tiles[i]['loc']['y'], tiles[i]['tile']['tileType']);
 
     }
 }
@@ -44,7 +46,7 @@ ws.onmessage = function(evt) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         json = JSON.parse(reader.result)
-        console.log(json);
+            // console.log(json);
 
         if (firstFrame) {
 
@@ -60,8 +62,11 @@ ws.onmessage = function(evt) {
             render(json['world']);
             firstFrame = 0;
 
-        } else
-            renderDelta(json['delta'])
+        } else {
+        	// console.log('renderingdelta')
+            // console.log(json['tileDiff'])
+            renderDelta(json)
+        }
 
     });
     reader.readAsText(evt.data);

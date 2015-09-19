@@ -37,8 +37,18 @@ var ws = new WebSocket("ws://localhost:4444/");
 
 
 ws.onmessage = function(evt) {
-    var received_msg = evt.data;
-    console.log(received_msg.toString())
+    // var received_msg = JSON.parse(evt.data)
+
+
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        console.log(event.target.result)
+    }; // data url!
+    var source = reader.readAsBinaryString(evt.data);
+	
+	console.log(JSON.parse(source))
+    
+    console.log(source)
         // alert("Message is received...");
 };
 

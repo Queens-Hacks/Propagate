@@ -16,7 +16,7 @@ func main() {
 	s := sim.NewState(500, 250)
 	species := s.AddSpecies(128, "while 1 do grow(\"up\") end", "Me")
 	for i := 0; i < 3; i++ {
-		s.AddPlant(sim.Location{200 + i*50, 250}, species)
+		s.AddPlant(sim.Location{200 + i*50, 50}, species)
 	}
 
 	port := ":4444"

@@ -9,7 +9,7 @@ type WorldState struct {
 }
 
 type NewState struct {
-	moveDir Direction
+	MoveDir Direction
 }
 
 type Node struct {
@@ -131,7 +131,7 @@ func runNode(node internalNode) {
 
 	addDirFunc(l, "grow", func(l *lua.State, d Direction) int {
 		var state NewState
-		state.moveDir = d
+		state.MoveDir = d
 
 		// Send a response and wait
 		node.respond <- state

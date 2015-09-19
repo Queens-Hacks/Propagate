@@ -14,8 +14,8 @@ const (
 )
 
 type Location struct {
-	x int
-	y int
+	X int
+	Y int
 }
 
 type growthRoot struct {
@@ -70,8 +70,8 @@ func SimulateTick(s *state) {
 	for _, response := range responses {
 		newState := <-response.ch
 
-		newX := response.root.Loc.x
-		newY := response.root.Loc.y
+		newX := response.root.Loc.X
+		newY := response.root.Loc.Y
 
 		// XXX newState should actually contain information about the type of
 		// operation performed
@@ -107,8 +107,8 @@ func SimulateTick(s *state) {
 		}
 
 		// Move the growth root to the new location
-		response.root.Loc.x = newX
-		response.root.Loc.y = newY
+		response.root.Loc.X = newX
+		response.root.Loc.Y = newY
 	}
 }
 
@@ -124,7 +124,7 @@ func AddPlant(s *state, loc Location, id int) *growthRoot {
 	s.roots = append(s.roots, root)
 
 	// Update the tile under the new root node
-	tile := &s.World[loc.y][loc.x]
+	tile := &s.World[loc.Y][loc.X]
 	tile.T = plantTile
 	tile.Plant = &plantInfo{id, loc, 0}
 

@@ -47,6 +47,8 @@ func handleConnections(ctx context.Context, newConns chan<- net.Conn, port strin
 			logrus.Error(err)
 		}
 
+		logrus.Infof("Accepted conn: %v", conn)
+
 		go func() {
 			newConns <- conn
 		}()
@@ -58,6 +60,7 @@ func sendWorld(conn net.Conn, data []byte) {
 	if err != nil {
 		logrus.Error(err)
 	}
+	logrus.Infof("Sent world to conn: %v", conn)
 }
 
 func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {
@@ -68,6 +71,7 @@ func sendDiffs(ctx context.Context, conn net.Conn, diff chan []byte) {
 			if err != nil {
 				logrus.Error(err)
 			}
+			logrus.Infof("Sent diff to conn: %v", conn)
 		case <-ctx.Done():
 			return
 		}

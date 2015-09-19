@@ -49,6 +49,12 @@ func handleWebSocket(ws *websocket.Conn) {
 	logrus.Infof("Accepted conn: %v", ws)
 	done := make(chan void)
 	newConns <- webSocketDone{ws, done}
+	var b []byte
+	err := websocket.Message.Receive(ws, b)
+	if err != nil {
+		logrus.Error(err)
+	}
+	logrus.Infof("Bytes received: %s", b)
 	<-done
 }
 

@@ -29,7 +29,7 @@ while 1 do
 end
 `, "Me")
 	for i := 0; i < 1; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 100}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
 	port := ":4444"

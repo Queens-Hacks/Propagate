@@ -27,8 +27,8 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 
 		case data := <-diff:
 			// logrus.Infof("sending diff to %d clients with total %d", len(conns), nextId)
-			for _, c := range conns {
-				// logrus.Infof("sending DIFF to %d", key)
+			for key, c := range conns {
+				logrus.Infof("sending DIFF to %d", key)
 				go func(b chan []byte) { b <- data }(c)
 			}
 

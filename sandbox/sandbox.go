@@ -5,7 +5,7 @@ import (
 )
 
 type WorldState struct {
-	lighting map[Direction]float64
+	Lighting map[Direction]float64
 }
 
 type NewState struct {
@@ -141,7 +141,7 @@ func runNode(node internalNode) {
 	})
 
 	addDirFunc(l, "lighting", func(l *lua.State, d Direction) int {
-		l.PushNumber(world.lighting[d])
+		l.PushNumber(world.Lighting[d])
 		return 1
 	})
 

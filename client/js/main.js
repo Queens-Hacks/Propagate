@@ -43,7 +43,7 @@ ws.onmessage = function(evt) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         json = JSON.parse(reader.result)
-            // console.log(json);
+        console.log(json);
 
         if (firstFrame) {
 
@@ -53,8 +53,8 @@ ws.onmessage = function(evt) {
             // ctx.canvas.width = window.innerWidth;
             // ctx.canvas.height = window.innerHeight;
 
-            sx = canvas.width / gameheight;
-            sy = canvas.height / gamewidth;
+            sx = canvas.width / gamewidth;
+            sy = canvas.height / gameheight;
 
             render(json['world']);
             firstFrame = 0;
@@ -82,3 +82,17 @@ window.onbeforeunload = function() {
     ws.onclose = function() {}; // disable onclose handler first
     ws.close()
 };
+
+function updateCodex(plants) {
+    newHtml = ""
+    for (var i = 0; i < plants.length; i++) {
+        newHtml += "<div class='card'><p>" + plants[i].toString() + "<br></p></div>";
+    }
+    codex.innerHTML = newHtml;
+}
+
+var fakeplants = [];
+fakeplants.push("test");
+fakeplants.push("test2");
+// fakeplants.push({firstName:"John", lastName:"Doe", age:50, eyeColor:"blue"});
+updateCodex(fakeplants);

@@ -192,6 +192,8 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 
 		// Add the new root for the new plant
 		s.AddGrowth(tmp, root.Plant, in.Meta)
+	} else if in.Operation == sandbox.Spawn {
+		s.AddSpore(root.Loc, root.SpeciesId)
 	} else if in.Operation == sandbox.Wait {
 		// that was easy
 		return

@@ -21,6 +21,7 @@ const (
 	Move StateChange = iota
 	Split
 	Wait
+	Spawn
 )
 
 type NewState struct {
@@ -329,6 +330,18 @@ func runNode(node internalNode) {
 	addVoidFunc(l, "terminate", func(l *lua.State) int {
 		updateEndTime(&end_time)
 		panic("this is normal, apparently")
+	})
+
+	addVoidFunc(l, "spawn", func(l *lua.State) int {
+		updateEndTime(&end_time)
+		var state NewState
+		state.Dir = Undef
+		state.Operation = Spawn
+
+		world = respond(&node, state)
+		panic("Goodbye, thread")
+
+		return 0
 	})
 
 	addVoidFunc(l, "get_energy", func(l *lua.State) int {

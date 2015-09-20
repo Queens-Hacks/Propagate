@@ -10,44 +10,25 @@
 <body>
 <h1 id="api-documentation">API Documentation</h1>
 <h2 id="introduction">Introduction</h2>
-<pre><code>This document describes the use of the Lua API for declaring the
-behavior of a virtual plant. The set Lua API functions can be
-divided into blocking, game state changing functions, as well as
-non-blocking information gathering ones. These functions are
-written from the perspective of the &#39;tip&#39; of a plant.</code></pre>
-<h2 id="environment-modifying-functions">Environment modifying functions</h2>
+<pre><code>This document describes the use of the Lua API for declaring the behavior of a virtual plant. The set Lua API functions can be divided into blocking, game state changing functions, as well as non-blocking information gathering ones. These functions are written from the perspective of the &#39;tip&#39; of a plant. Environment modifying functions</code></pre>
 <h3 id="growdir">grow(&quot;DIR&quot;)</h3>
-<pre><code>This function takes a string literal chosen from {&quot;left&quot;, &quot;right&quot;,
-&quot;up&quot;, &quot;down&quot;} which instructs the tip to grow further. It has a
-price in Energy, and will block until the plant has a sufficient
-amount.</code></pre>
+<pre><code>This function takes a string literal chosen from {&quot;left&quot;, &quot;right&quot;, &quot;up&quot;, &quot;down&quot;} which instructs the tip to grow further. It has a price in Energy, and will block until the plant has a sufficient amount.</code></pre>
 <h3 id="splitdir-meta">split(&quot;DIR&quot;, &quot;META&quot;)</h3>
-<pre><code>This function splits the tip of the current node into two: one new
-tip and itself. The new tip will have its own copy of the script
-you defined, starting at the top. The &lt;DIR&gt; argument represents
-the direction that the new node will begin to travel, and the
-&lt;META&gt; argument sets a variable accessible in the new tip with the
-meta() function. This function requires Energy to execute.</code></pre>
+<pre><code>This function splits the tip of the current node into two: one new tip and itself. The new tip will have its own copy of the script you defined, starting at the top. The &lt;DIR&gt; argument represents the direction that the new node will begin to travel, and the &lt;META&gt; argument sets a variable accessible in the new tip with the meta() function. This function requires Energy to execute.</code></pre>
 <h3 id="terminate">terminate()</h3>
-<pre><code>This function turns the current active tip node into a passive
-plant node.</code></pre>
+<pre><code>This function turns the current active tip node into a passive plant node.</code></pre>
 <h3 id="spawn">spawn()</h3>
-<pre><code>This function calls terminates() the current tip, and releases a
-&#39;spore&#39;, a game object that gently falls to the ground and plants
-a new instance of your plant. It requires Energy to execute.</code></pre>
+<pre><code>This function calls terminates() the current tip, and releases a &#39;spore&#39;, a game object that gently falls to the ground and plants a new instance of your plant. It requires Energy to execute.</code></pre>
 <h3 id="wait">wait()</h3>
 <pre><code>This function pauses your tip until the next tick.</code></pre>
 <h2 id="information-gathering-functions">Information gathering functions</h2>
 <h3 id="meta">meta()</h3>
-<pre><code>This functions returns the string passed in from the parent split
-call. If called from the stem, it returns &quot;&quot;.</code></pre>
+<pre><code>This functions returns the string passed in from the parent split call. If called from the stem, it returns &quot;&quot;.</code></pre>
 <h3 id="get_energy">get_energy()</h3>
-<pre><code>This function return an integer representing your plant&#39;s current
-energy level.</code></pre>
+<pre><code>This function return an integer representing your plant&#39;s current energy level.</code></pre>
 <h3 id="get_age">get_age()</h3>
 <pre><code>This function return an integer representing your plant&#39;s age.</code></pre>
 <h3 id="lightingdir">lighting(&quot;DIR&quot;)</h3>
-<pre><code>This function takes in a Direction String and returns an integer
-representing the light currently available at that node.</code></pre>
+<pre><code>This function takes in a Direction String and returns an integer representing the light currently available at that node.</code></pre>
 </body>
 </html>

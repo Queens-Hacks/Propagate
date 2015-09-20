@@ -207,13 +207,13 @@ func (s *State) simulateTick() {
 		p.Energy -= (p.Age * p.Age)
 
 		if p.Energy < 0 {
-			for t := range p.tiles {
-				s.SetTile(t, Tile{AirTile, nil})
-			}
 			for r := range p.roots {
 				s.HaltGrowth(r)
 			}
 			s.plantRelease(p.SpeciesId)
+			for _, t := range p.tiles {
+				s.SetTile(t, Tile{AirTile, nil})
+			}
 		} else {
 			surviving = append(surviving, p)
 		}

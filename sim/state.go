@@ -28,6 +28,10 @@ type Location struct {
 	Y int `json:"y"`
 }
 
+func (l Location) str() string {
+	return fmt.Sprintf("%v", l)
+}
+
 type extraTileInfo struct {
 	SpeciesId string   `json:"plantId"`
 	Parent    Location `json:"parent"`
@@ -44,7 +48,7 @@ type Plant struct {
 	Energy    int
 	Age       int
 	SpeciesId string
-	tiles     map[Location]struct{}
+	tiles     map[string]Location
 	roots     map[*growthRoot]struct{}
 }
 
@@ -170,14 +174,12 @@ func (s *State) SetTile(loc Location, new Tile) {
 	loc = boundsCheck(loc, s.Height(), s.Width())
 
 	// Manage the addref and releases
-	if new.Extra != nil {
-		s.plantAddRef(new.Extra.SpeciesId)
-		new.Extra.Plant.tiles[loc] = struct{}{}
-	}
 	old := s.GetTile(loc)
 	if old.Extra != nil {
-		s.plantRelease(old.Extra.SpeciesId)
-		delete(old.Extra.Plant.tiles, loc)
+		delete(old.Extra.Plant.tiles, loc.str())
+	}
+	if new.Extra != nil {
+		new.Extra.Plant.tiles[loc.str()] = loc
 	}
 
 	// Actually update the tile and record the tilediffs
@@ -187,7 +189,7 @@ func (s *State) SetTile(loc Location, new Tile) {
 
 func (s *State) AddPlant(speciesId string) *Plant {
 	s.plantAddRef(speciesId)
-	plant := &Plant{100, 0, speciesId, map[Location]struct{}{}, map[*growthRoot]struct{}{}}
+	plant := &Plant{100, 0, speciesId, map[string]Location{}, map[*growthRoot]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }

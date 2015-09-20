@@ -8,6 +8,35 @@ import (
 	"golang.org/x/net/context"
 )
 
+var scripty string = `
+function randDir()
+	return "up"
+  -- d = math.random(3)
+  -- if d == 0 then return "right" end
+  -- if d == 1 then return "up" end
+  -- if d == 2 then return "left" end
+end
+ 
+while 1 do
+  grow(randDir())
+  grow(randDir())
+  split(randDir(), "right")
+end
+`
+
+var other_scripty string = `
+while 1 do
+  if meta() == "" then
+    grow("up")
+    grow("up")
+	split("right", "right")
+  else
+  	grow("right")
+  end
+end
+
+`
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -16,18 +45,7 @@ func main() {
 	diff := make(chan []byte)
 
 	s := sim.NewState(500, 125)
-	species := s.AddSpecies(128, `
-while 1 do
-  if meta() == "" then
-    grow("up")
-    grow("up")
-    split("right", "right")
-  else
-    -- debug(meta())
-    grow("right")
-  end
-end
-`, "Me")
+	species := s.AddSpecies(128, other_scripty, "Me")
 	for i := 0; i < 100; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}

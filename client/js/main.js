@@ -239,11 +239,30 @@ if (inEditMode) {
         e.preventDefault();
         var v = JSON.stringify({
             kind: "+species+spawn",
-            color: 123,
+            color: Math.floor(Math.random() * 360),
             code: editor.getValue()
         });
         console.log(v);
 
         ws.send(v);
+    });
+
+    document.getElementById('publish').addEventListener('click', function(e) {
+        e.preventDefault();
+        var globws = new WebSocket("ws://localhost:4444/global");
+        globws.onopen = function() {
+            var v = JSON.stringify({
+                kind: "+species+spawn",
+                color: Math.floor(Math.random() * 360),
+                code: editor.getValue()
+            });
+            console.log(v);
+
+            globws.send(v);
+            globws.close();
+            setTimeout(function() {
+                document.location = '/';
+            }, 0);
+        };
     });
 }

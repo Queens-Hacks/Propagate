@@ -122,6 +122,8 @@ func (s *State) handleAction(a *Action) {
 			s.AddSpore(loc, species)
 			// XXX Instantly plant them sometimes
 		}
+	} else if a.Kind == "+clear" {
+		// XXX Implement?
 	} else {
 		logrus.Warnf("Unrecognized kind %s", a.Kind)
 	}

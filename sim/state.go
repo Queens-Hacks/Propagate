@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
-	"github.com/Sirupsen/logrus"
 )
 
 type TileType int
@@ -125,12 +124,13 @@ type State struct {
 
 // Records a reference to a plant, causing the plant to be kept in the structure
 func (s *State) plantAddRef(plantId string) {
-	s.GetSpecies(plantId).refCnt++
+	species, _ := s.GetSpecies(plantId)
+	species.refCnt++
 }
 
 // Records a reference to a plant, causing the plant to be removed from the structure
 func (s *State) plantRelease(plantId string) {
-	plant := s.GetSpecies(plantId)
+	plant, _ := s.GetSpecies(plantId)
 	plant.refCnt--
 
 	// If the reference count has reached zero, remove the plant from the thing
@@ -148,8 +148,9 @@ func (s *State) Height() int {
 	return len(s.state.World)
 }
 
-func (s *State) GetSpecies(plantId string) *Species {
-	return s.state.Species[plantId]
+func (s *State) GetSpecies(plantId string) (*Species, bool) {
+	species, ok := s.state.Species[plantId]
+	return species, ok
 }
 
 // Adds a species to the stateAndDiff, and returns the string key for the plant
@@ -198,7 +199,7 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	if plant == nil {
 		panic("crap")
 	}
-	species := s.GetSpecies(plant.SpeciesId)
+	species, _ := s.GetSpecies(plant.SpeciesId)
 
 	// Create the sandbox node for the plant object
 	node := sandbox.AddNode(species.Source, meta)
@@ -207,7 +208,6 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	root := growthRoot{plant.SpeciesId, loc, plant, node}
 	s.state.roots[&root] = struct{}{}
 	plant.roots[&root] = struct{}{}
-	// s.state.roots = append(s.state.roots, &root)
 
 	isUnderground := false
 	if s.GetTile(loc).Type == DirtTile {
@@ -222,7 +222,6 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 }
 
 func (s *State) HaltGrowth(gr *growthRoot) {
-	logrus.Infof("Halting growthroot!")
 	gr.node.Halt()
 	delete(s.state.roots, gr)
 }

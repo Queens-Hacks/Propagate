@@ -103,7 +103,8 @@ function drawTile(x, y, tile) {
     hidCtx.fillRect(x * scale, y * scale, scale, scale);
 }
 
-var ws = new WebSocket("ws://localhost:4444/");
+var ws = new WebSocket("ws://localhost:4444/global");
+window.__ws = ws;
 
 ws.onmessage = function(evt) {
     var reader = new FileReader();

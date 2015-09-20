@@ -7,18 +7,56 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	"code.google.com/p/go.net/websocket"
+	"github.com/Queens-Hacks/Propagate/sim"
 	"golang.org/x/net/context"
 )
 
-var newConns = make(chan webSocketDone)
+type webSocketDone struct {
+	ws   *websocket.Conn
+	done chan struct{}
+	ctx  context.Context
+	id   int
+}
 
-func New(ctx context.Context, total, diff chan []byte, port string) {
-
+func New(ctx context.Context, total, diff chan []byte, actions chan sim.Action, port string) {
 	var worldData []byte
 	nextId := 0
+
+	newConns := make(chan webSocketDone)
 	conns := map[int]chan []byte{}
 
-	go handleConnections(port)
+	handleWebSocket := func(ws *websocket.Conn) {
+		done := make(chan struct{})
+		ctx, cancel := context.WithCancel(context.Background())
+		newConns <- webSocketDone{ws, done, ctx, 0}
+
+		for {
+			var a sim.Action
+			err := websocket.JSON.Receive(ws, &a)
+			if err == io.EOF {
+				cancel()
+				break
+			} else if err != nil {
+				logrus.Error(err)
+				break
+			}
+
+			logrus.Infof("Found a kind: %s", a.Kind)
+			actions <- a
+		}
+		<-done
+		logrus.Infof("Closing websocket: %v", ws)
+	}
+
+	go func() {
+		http.Handle("/global", websocket.Handler(handleWebSocket))
+		// XXX SUPER SKETCH
+		http.Handle("/", http.FileServer(http.Dir("../client")))
+		err := http.ListenAndServe(port, nil)
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	for {
 		select {
@@ -47,37 +85,6 @@ func New(ctx context.Context, total, diff chan []byte, port string) {
 		}
 	}
 }
-
-type webSocketDone struct {
-	ws   *websocket.Conn
-	done chan struct{}
-	ctx  context.Context
-	id   int
-}
-
-func handleWebSocket(ws *websocket.Conn) {
-	done := make(chan struct{})
-	ctx, cancel := context.WithCancel(context.Background())
-	newConns <- webSocketDone{ws, done, ctx, 0}
-	var b []byte
-	err := websocket.Message.Receive(ws, b)
-	if err == io.EOF {
-		cancel()
-	} else if err != nil {
-		logrus.Error(err)
-	}
-	<-done
-	// logrus.Infof("Closing websocket: %v", ws)
-}
-
-func handleConnections(port string) {
-	http.Handle("/", websocket.Handler(handleWebSocket))
-	err := http.ListenAndServe(port, nil)
-	if err != nil {
-		logrus.Error(err)
-	}
-}
-
 func sendWorld(wd webSocketDone, data []byte) {
 	err := websocket.Message.Send(wd.ws, data)
 	if err != nil {

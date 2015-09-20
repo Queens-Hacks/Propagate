@@ -8,6 +8,15 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+type Action struct {
+	Kind    string `json:"kind"`
+	Code    string `json:"code"`
+	Color   int    `json:"color"`
+	Species string `json:"species"`
+	X       int    `json:"x"`
+	Y       int    `json:"y"`
+}
+
 type MarshalledState struct {
 	State []byte
 	Diff  []byte
@@ -15,7 +24,7 @@ type MarshalledState struct {
 
 // After calling this function it is no longer safe to do anything with s from
 // outside of the simulation
-func (s *State) StartSimulate() <-chan MarshalledState {
+func (s *State) StartSimulate(actions <-chan Action) <-chan MarshalledState {
 	ch := make(chan MarshalledState)
 
 	go func() {
@@ -44,11 +53,49 @@ func (s *State) StartSimulate() <-chan MarshalledState {
 				ch <- MarshalledState{ms, md}
 			}
 
-			<-tick.C
+			for {
+				select {
+				case <-tick.C:
+				case action := <-actions:
+					s.handleAction(&action)
+					continue
+				}
+				break
+			}
 		}
 	}()
 
 	return ch
+}
+
+func (s *State) handleAction(a *Action) {
+	if a.Kind == "+species" {
+		color := a.Color
+		if color < 0 {
+			logrus.Warn("Color too small")
+			color = 0
+		}
+		if color > 360 {
+			logrus.Warn("Color too big")
+			color = 360
+		}
+		code := a.Code
+		if len(code) == 0 {
+			logrus.Warn("Ignored empty code property")
+			return
+		}
+		s.AddSpecies(color, code, "")
+		// XXX Maybe send the species back to the client somehow? who knows...
+	} else if a.Kind == "+spawn" {
+		_, ok := s.GetSpecies(a.Species)
+		if !ok {
+			logrus.Warn("Non-existant species")
+		}
+		loc := boundsCheck(Location{a.X, a.Y}, s.Height(), s.Width())
+		s.AddSpore(loc, a.Species)
+	} else {
+		logrus.Warnf("Unrecognized kind %s", a.Kind)
+	}
 }
 
 func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {

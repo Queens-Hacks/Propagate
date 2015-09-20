@@ -43,6 +43,7 @@ func main() {
 
 	total := make(chan []byte)
 	diff := make(chan []byte)
+	actions := make(chan sim.Action)
 
 	s := sim.NewState(500, 125)
 	species := s.AddSpecies(128, other_scripty, "Me")
@@ -53,9 +54,9 @@ func main() {
 	port := ":4444"
 
 	logrus.Infof("Listening on port %s", port)
-	go New(ctx, total, diff, port)
+	go New(ctx, total, diff, actions, port)
 
-	ss := s.StartSimulate()
+	ss := s.StartSimulate(actions)
 	for {
 		ms := <-ss
 		total <- ms.State

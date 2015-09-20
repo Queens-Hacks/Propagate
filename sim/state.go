@@ -222,6 +222,8 @@ func (s *State) ClearPlants() {
 			s.SetTile(t, Tile{AirTile, nil})
 		}
 	}
+
+	s.state.plants = []*Plant{}
 }
 
 func (s *State) AddPlant(speciesId string) *Plant {

@@ -318,6 +318,7 @@ func (s *State) simulateTick() {
 				for r := range p.roots {
 					s.HaltGrowth(r)
 				}
+				p.roots = map[*growthRoot]struct{}{}
 				p.terminal = true
 			}
 

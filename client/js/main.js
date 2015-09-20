@@ -276,4 +276,12 @@ if (inEditMode) {
             }, 0);
         };
     });
+
+    document.getElementById('clear').addEventListener('click', function(e) {
+        e.preventDefault();
+        var v = JSON.stringify({kind: "+clear"});
+        console.log(v);
+
+        ws.send(v);
+    });
 }

@@ -8,6 +8,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+var maxMemory string = `
+while 1 do
+	grow("up")
+	grow("up")
+	split("up","up")
+	grow("left")
+	grow("left")
+	split("left","left")
+	grow("right")
+	grow("right")
+	split("right","right")
+end
+`
+
 var crystal string = `
 while 1 do
   grow("up")
@@ -92,7 +106,12 @@ func main() {
 
 	s := sim.NewState(500, 125)
 
-	species := s.AddSpecies(63, crystal, "Me")
+	species := s.AddSpecies(256, maxMemory, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(63, crystal, "Me")
 	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}

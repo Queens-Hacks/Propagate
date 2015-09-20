@@ -120,9 +120,12 @@ func (s *State) handleAction(a *Action) {
 		for i := 0; i < 10; i++ {
 			loc := Location{rand.Intn(s.Width()), 0}
 			logrus.Info(loc)
-			/* spore := */ s.AddSpore(loc, species)
 			if a.Ground && i < 5 {
-				// s.LandSpore(spore)
+				plant := s.AddPlant(species)
+				s.lowerToDirt(&loc)
+				s.AddGrowth(loc, plant, "")
+			} else {
+				/* spore := */ s.AddSpore(loc, species)
 			}
 			// XXX Instantly plant them sometimes
 		}

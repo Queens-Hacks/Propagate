@@ -259,6 +259,18 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	return &root
 }
 
+func (s *State) lowerToDirt(loc *Location) {
+	var base int
+	for y := 0; y < s.Height(); y++ {
+		t := s.GetTile(Location{loc.X, y})
+		if t.Type == DirtTile {
+			base = y - 1
+			break
+		}
+	}
+	loc.Y = base
+}
+
 func (s *State) HaltGrowth(gr *growthRoot) {
 	gr.node.Halt()
 	delete(s.state.roots, gr)

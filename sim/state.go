@@ -45,12 +45,15 @@ type Tile struct {
 }
 
 type Plant struct {
-	Energy    int
-	Age       int
-	Luck      int
-	SpeciesId string
-	tiles     map[string]Location
-	roots     map[*growthRoot]struct{}
+	Energy      int
+	Age         int
+	Luck        int
+	SpeciesId   string
+	tiles       map[string]Location
+	terminal    bool
+	markedTiles map[Location]Location
+	roots       map[*growthRoot]struct{}
+	ageOfDeath  int
 }
 
 type Species struct {
@@ -175,7 +178,8 @@ func (s *State) GetSpecies(plantId string) (*Species, bool) {
 }
 
 // Adds a species to the stateAndDiff, and returns the string key for the plant
-// This plant is created with a refCnt of zero, but will not be dropped until
+// This plant is created with a refCnt of zero
+// , but will not be dropped until
 // its reference count hits zero again.
 func (s *State) AddSpecies(color int, source string, author string) string {
 	p := Species{color, source, author, 0}
@@ -222,7 +226,7 @@ func (s *State) ClearPlants() {
 
 func (s *State) AddPlant(speciesId string) *Plant {
 	s.plantAddRef(speciesId)
-	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, map[*growthRoot]struct{}{}}
+	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, false, nil, map[*growthRoot]struct{}{}, -1}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }

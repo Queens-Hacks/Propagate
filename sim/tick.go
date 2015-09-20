@@ -308,16 +308,41 @@ func (s *State) simulateTick() {
 
 		// logrus.Infof("delta energy: %d", deltaEnergy)
 		if p.Energy < 0 {
-			for r := range p.roots {
-				s.HaltGrowth(r)
+			if p.terminal == false {
+				for r := range p.roots {
+					s.HaltGrowth(r)
+				}
+				p.terminal = true
+				p.ageOfDeath = p.Age
 			}
-			s.plantRelease(p.SpeciesId)
+
+			p.markedTiles = make(map[Location]Location)
+
 			for _, t := range p.tiles {
+				p.markedTiles[t] = t
+			}
+			for _, t := range p.tiles {
+				delete(p.markedTiles, s.GetTile(t).Extra.Parent)
+			}
+
+			for _, t := range p.markedTiles {
+				if rand.Intn(100) > 90 {
+					s.AddSpore(p.tiles[t.str()], p.SpeciesId)
+				}
 				s.SetTile(t, Tile{AirTile, nil})
+				delete(p.tiles, t.str())
+
 			}
-			for i := 0; i < 2; i++ {
-				s.AddSpore(Location{rand.Intn(500), 75}, p.SpeciesId)
+
+			if p.ageOfDeath != -1 && (p.Age-p.ageOfDeath) > 35 {
+				s.plantRelease(p.SpeciesId)
+				for _, t := range p.tiles {
+					s.SetTile(t, Tile{AirTile, nil})
+				}
+			} else {
+				surviving = append(surviving, p)
 			}
+
 		} else {
 			surviving = append(surviving, p)
 		}

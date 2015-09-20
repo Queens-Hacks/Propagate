@@ -53,7 +53,6 @@ type Plant struct {
 	terminal    bool
 	markedTiles map[Location]Location
 	roots       map[*growthRoot]struct{}
-	ageOfDeath  int
 }
 
 type Species struct {
@@ -227,7 +226,7 @@ func (s *State) ClearPlants() {
 
 func (s *State) AddPlant(speciesId string) *Plant {
 	s.plantAddRef(speciesId)
-	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, false, nil, map[*growthRoot]struct{}{}, -1}
+	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, false, nil, map[*growthRoot]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }

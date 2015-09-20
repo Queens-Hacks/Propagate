@@ -319,7 +319,6 @@ func (s *State) simulateTick() {
 					s.HaltGrowth(r)
 				}
 				p.terminal = true
-				p.ageOfDeath = p.Age
 			}
 
 			p.markedTiles = make(map[Location]Location)
@@ -330,23 +329,23 @@ func (s *State) simulateTick() {
 			for _, t := range p.tiles {
 				delete(p.markedTiles, s.GetTile(t).Extra.Parent)
 			}
+			if len(p.markedTiles) != 0 {
 
-			for _, t := range p.markedTiles {
-				if rand.Intn(100) > 90 {
-					s.AddSpore(p.tiles[t.str()], p.SpeciesId)
+				for _, t := range p.markedTiles {
+					if rand.Intn(100) > 90 {
+						s.AddSpore(p.tiles[t.str()], p.SpeciesId)
+					}
+					s.SetTile(t, Tile{AirTile, nil})
+					delete(p.tiles, t.str())
 				}
-				s.SetTile(t, Tile{AirTile, nil})
-				delete(p.tiles, t.str())
+				surviving = append(surviving, p)
 
-			}
-
-			if p.ageOfDeath != -1 && (p.Age-p.ageOfDeath) > 35 {
+			} else {
 				s.plantRelease(p.SpeciesId)
 				for _, t := range p.tiles {
 					s.SetTile(t, Tile{AirTile, nil})
 				}
-			} else {
-				surviving = append(surviving, p)
+
 			}
 
 		} else {

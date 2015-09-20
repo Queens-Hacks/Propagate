@@ -125,6 +125,7 @@ ws.onmessage = function(evt) {
 
         } else {
             applyDelta(json);
+            updateCodex();
 
             render();
         }
@@ -211,27 +212,35 @@ visCan.addEventListener('mouseup', function(e) {
 });
 
 function updateCodex() {
+    if (inEditMode) {
+        return;
+    }
     var codexString = "";
 
     var key = 0;
-    for (key in state['plants']) {
-        codexString += "<div id='" + key + "'class='card two columns' style='background-color: " + husl.toHex(state['plants'][key]['color'], 50, 50) + "'><p><br>Author:\t" + state['plants'][key]['author'] + "</p></div>";
-    }
-    codex.innerHTML = codexString;
+    codex.innerHTML = "";
+    Object.keys(state.plants).forEach(function(key) {
+        var editBtn = document.createElement('button');
+        editBtn.setAttribute('class', 'edit-btn');
+        editBtn.setAttribute('id', 'edit-' + key);
+        editBtn.setAttribute('style', 'background-color: ' + husl.toHex(state.plants[key].color, 50, 50));
+        editBtn.innerHTML = '<i class="fa fa-code-fork"></i>'; // XXX FIXME pen?
 
-    for (key in state['plants']) {
-        attachListeners(key);
-    }
-}
+        editBtn.addEventListener("mouseover", function(event) {
+            selected = key;
+        }, true);
 
-function attachListeners(key) {
-    document.getElementById(key).addEventListener("mouseover", function(event) {
-        selected = key;
-    }, true);
+        editBtn.addEventListener("mouseout", function(event) {
+            selected = "";
+        }, true);
 
-    document.getElementById(key).addEventListener("mouseout", function(event) {
-        selected = "";
-    }, true);
+        editBtn.addEventListener("click", function(event) {
+            sessionStorage.setItem('code', state.plants[key].source);
+            document.location = '/edit';
+        }, true);
+
+        codex.appendChild(editBtn);
+    });
 }
 
 if (inEditMode) {
@@ -240,7 +249,8 @@ if (inEditMode) {
         var v = JSON.stringify({
             kind: "+species+spawn",
             color: Math.floor(Math.random() * 360),
-            code: editor.getValue()
+            code: editor.getValue(),
+            ground: true
         });
         console.log(v);
 
@@ -254,7 +264,8 @@ if (inEditMode) {
             var v = JSON.stringify({
                 kind: "+species+spawn",
                 color: Math.floor(Math.random() * 360),
-                code: editor.getValue()
+                code: editor.getValue(),
+                ground: false
             });
             console.log(v);
 

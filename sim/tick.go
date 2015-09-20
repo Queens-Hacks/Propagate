@@ -16,6 +16,7 @@ type Action struct {
 	Species string `json:"species"`
 	X       int    `json:"x"`
 	Y       int    `json:"y"`
+	Ground  bool   `json:"ground"`
 }
 
 type MarshalledState struct {
@@ -119,11 +120,14 @@ func (s *State) handleAction(a *Action) {
 		for i := 0; i < 10; i++ {
 			loc := Location{rand.Intn(s.Width()), 0}
 			logrus.Info(loc)
-			s.AddSpore(loc, species)
+			/* spore := */ s.AddSpore(loc, species)
+			if a.Ground && i < 5 {
+				// s.LandSpore(spore)
+			}
 			// XXX Instantly plant them sometimes
 		}
 	} else if a.Kind == "+clear" {
-		// XXX Implement?
+		s.ClearPlants()
 	} else {
 		logrus.Warnf("Unrecognized kind %s", a.Kind)
 	}

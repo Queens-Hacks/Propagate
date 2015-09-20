@@ -81,10 +81,11 @@ type spore struct {
 	SpeciesId string   `json:"plantId"`
 }
 
-func (s *State) AddSpore(loc Location, plantId string) {
+func (s *State) AddSpore(loc Location, plantId string) *spore {
 	// TODO add in bounds checks
 	s.plantAddRef(plantId)
 	s.diff.Spores = append(s.diff.Spores, spore{loc, plantId})
+	return &s.diff.Spores[len(s.diff.Spores)-1]
 }
 
 func (s *State) UpdateSpore(p *spore) bool {

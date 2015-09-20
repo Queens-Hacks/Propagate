@@ -1,5 +1,6 @@
 #codex {
     padding-top: 30px;
+    text-align: center;
 }
 
 .card {
@@ -31,4 +32,16 @@ html {
     clear: both;
     margin: 0 auto;
     overflow: hidden;
+}
+
+.edit-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  padding: 0px;
+  margin: 10px;
+  vertical-align: middle;
+  line-height: inherit !important;
+  color: #222;
+  font-size: 160%;
 }

@@ -89,6 +89,12 @@ end</div>
         document.location = '/';
       });
 
+      var code = sessionStorage.getItem('code');
+      if (code) {
+        editor.setValue(code);
+        sessionStorage.setItem('code', "");
+      }
+
       var inEditMode = true;
     </script>
     <script src="/build/main.js"></script>

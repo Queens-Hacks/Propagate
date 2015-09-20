@@ -205,7 +205,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		}})
 	} else if in.Operation == sandbox.Split && energy > 200 {
 		root.cache = nil
-		root.Plant.Energy -= 190
+		root.Plant.Energy -= 75
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(tmp).Type == PlantTile || s.GetTile(tmp).Type == DirtTile {

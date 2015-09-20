@@ -17,6 +17,7 @@ var state = {
 };
 
 var spores = [];
+var selected = "";
 
 var xViewport = 0;
 
@@ -90,9 +91,14 @@ function drawTile(x, y, tile) {
     if (tile['tileType'] == 0) {
         return;
     }
+    if (tile['tileType'] == 2) {
+        hidCtx.fillStyle = husl.toHex(state['plants'][tile['plant']['plantId']]['color'], 70, 70);
+        if (tile['plant']['plantId'] === selected)
+            hidCtx.fillStyle = '#fff'
+    } else hidCtx.fillStyle = colorMap[tile['tileType']];
+
 
     // XXX Do we want to do this without scaling, and scale when we copy to visctx?
-    hidCtx.fillStyle = colorMap[tile['tileType']];
     hidCtx.fillRect(x * scale, y * scale, scale, scale);
 }
 
@@ -108,10 +114,13 @@ ws.onmessage = function(evt) {
             onResize(); // We may have changed scale, so pretend we resized
             render(); // Render the screen
             firstFrame = false;
+            updateCodex();
+
         } else {
             applyDelta(json);
 
             render();
+
         }
     });
 
@@ -122,10 +131,17 @@ ws.onopen = function() {
     console.log("Connection established");
 };
 
+ws.onclose = function() {
+
+    document.getElementById('errorLog').innerHTML = "disconnected from server"
+
+}
 window.onbeforeunload = function() {
     ws.onclose = function() {}; // disable onclose handler first
     ws.close();
+
 };
+
 
 function onResize() {
     visCtx = visCan.getContext('2d');
@@ -190,3 +206,35 @@ window.setInterval(function() {
 visCan.addEventListener('mouseup', function(e) {
     lastX = -1;
 });
+
+function updateCodex() {
+    var codexString = "";
+    // console.log(Object.keys(state['plants']));
+
+    var key = 0;
+    for (key in state['plants']) {
+        codexString += "<div id='" + key + "'class='card'><h2> Color:\t" + state['plants'][key]['color'] + "<br> Code:\t <blockquote>" + state['plants'][key]['source'] + '</blockquote><br>Author:\t' + state['plants'][key]['author'] + "</h2></div>";
+    }
+
+    codex.innerHTML = codexString;
+
+    for (key in state['plants']) {
+        attachListeners(key);
+    }
+}
+
+function attachListeners(key) {
+
+    document.getElementById(key).addEventListener("mouseenter", function(event) {
+
+        selected = key;
+
+    }, false);
+
+    document.getElementById(key).addEventListener("mouseout", function(event) {
+
+        selected = "";
+
+
+    }, false);
+}

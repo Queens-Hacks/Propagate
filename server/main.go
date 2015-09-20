@@ -162,6 +162,9 @@ end
 `
 
 func main() {
+
+	logrus.SetLevel(logrus.WarnLevel)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

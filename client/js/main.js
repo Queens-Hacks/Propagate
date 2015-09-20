@@ -51,8 +51,10 @@ function render() {
     // Draw the spores
     for (var s = 0; s < spores.length; s++) {
         drawTile(spores[s]['location']['x'], spores[s]['location']['y'], {
-            tileType: 3
+            tileType: 3,
+            plant: spores[s]['plantId']
         });
+        // console.log(s['plantId']);
     }
 
     display();
@@ -94,7 +96,13 @@ function drawTile(x, y, tile) {
         if (tile['plant']['plantId'] === selected) {
             hidCtx.fillStyle = '#fff';
         }
+    } else if (tile['tileType'] == 3) {
+            // console.log(tile['plantId']);
+           hidCtx.fillStyle = husl.toHex((state['plants'][tile['plant']]['color']+50)%360, 65, 75);
+
+
     } else {
+
         hidCtx.fillStyle = colorMap[tile['tileType']];
     }
 
@@ -279,7 +287,9 @@ if (inEditMode) {
 
     document.getElementById('clear').addEventListener('click', function(e) {
         e.preventDefault();
-        var v = JSON.stringify({kind: "+clear"});
+        var v = JSON.stringify({
+            kind: "+clear"
+        });
         console.log(v);
 
         ws.send(v);

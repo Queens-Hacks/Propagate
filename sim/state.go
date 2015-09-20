@@ -107,6 +107,25 @@ func (s *State) UpdateSpore(p *spore) bool {
 	return false
 }
 
+func (s *State) LandSpore(p *spore) {
+	// find the spawn the spore
+	for y := s.Height() - 1; y > 0; y-- {
+		t := s.GetTile(Location{p.Location.X, y})
+		if t.Type == AirTile {
+			plant := s.AddPlant(p.SpeciesId)
+			s.AddGrowth(p.Location, plant, "")
+			break
+		}
+	}
+
+	// remove the spore
+	var i int
+	for p := range s.diff.Spores {
+		i = p
+	}
+	s.diff.Spores = append(s.diff.Spores[:i], s.diff.Spores[i+1:]...)
+}
+
 type diff struct {
 	TileDiffs     []tileDiff          `json:"tileDiff"`
 	NewPlants     map[string]*Species `json:"newPlants"`

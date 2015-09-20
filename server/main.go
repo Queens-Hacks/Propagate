@@ -8,8 +8,42 @@ import (
 	"golang.org/x/net/context"
 )
 
-var twisty string = `
+var crystal string = `
 while 1 do
+  grow("up")
+  split("up", "right")
+  split("left", "left")
+  split("right", "right")
+end
+`
+
+var twistyRight string = `
+while 1 do
+  grow("right")
+  grow("up")
+  grow("up")
+end
+`
+
+var twistyLeft string = `
+while 1 do
+  grow("left")
+  grow("up")
+  grow("up")
+end
+`
+
+var twistyUp string = `
+while 1 do
+  grow("left")
+  grow("up")
+  grow("up")
+  grow("left")
+  grow("up")
+  grow("up")
+  grow("right")
+  grow("up")
+  grow("up")
   grow("right")
   grow("up")
   grow("up")
@@ -35,6 +69,19 @@ end
 
 `
 
+var fearnLeft string = `
+while 1 do
+  if meta() == "" then
+    grow("up")
+    grow("up")
+	split("left", "left")
+  else
+  	grow("left")
+  end
+end
+
+`
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -45,18 +92,38 @@ func main() {
 
 	s := sim.NewState(500, 125)
 
-	species := s.AddSpecies(128, upUp, "Me")
-	for i := 0; i < 20; i++ {
+	species := s.AddSpecies(63, crystal, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(128, upUp, "Me")
+	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
 	species = s.AddSpecies(44, fearnRight, "Me")
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 5; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
-	species = s.AddSpecies(275, twisty, "Me")
-	for i := 0; i < 20; i++ {
+	species = s.AddSpecies(14, fearnLeft, "Me")
+	for i := 0; i < 5; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(275, twistyUp, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(233, twistyLeft, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(333, twistyRight, "Me")
+	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 

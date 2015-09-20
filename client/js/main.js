@@ -214,7 +214,7 @@ function updateCodex() {
 
     var key = 0;
     for (key in state['plants']) {
-        codexString += "<div id='" + key + "'class='card two columns' style='background-color: " + husl.toHex(state['plants'][key]['color'], 70, 70) + "'><p><br><br>Author:\t" + state['plants'][key]['author'] + "</p></div>";
+        codexString += "<div id='" + key + "'class='card two columns' style='background-color: " + husl.toHex(state['plants'][key]['color'], 50, 50) + "'><p><br>Author:\t" + state['plants'][key]['author'] + "</p></div>";
     }
     // console.log(codexString)
     codex.innerHTML = codexString;

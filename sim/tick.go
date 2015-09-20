@@ -2,6 +2,7 @@ package sim
 
 import (
 	"encoding/json"
+	"math/rand"
 	"time"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
@@ -161,7 +162,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 
 	if in.Operation == sandbox.Move && energy > 200 {
 		root.cache = nil
-		root.Plant.Energy -= 100
+		root.Plant.Energy -= 50
 		new = s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(new).Type == PlantTile || s.GetTile(new).Type == DirtTile {
@@ -176,7 +177,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		}})
 	} else if in.Operation == sandbox.Split && energy > 200 {
 		root.cache = nil
-		root.Plant.Energy -= 100
+		root.Plant.Energy -= 190
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(tmp).Type == PlantTile || s.GetTile(tmp).Type == DirtTile {
@@ -268,11 +269,14 @@ func (s *State) simulateTick() {
 	logrus.Infof("len of plants: %d", len(s.state.plants))
 	for _, p := range s.state.plants {
 		deltaEnergy := 0
+		factor := 1000.0
 		for _ = range p.tiles {
-			deltaEnergy += 5
+			deltaEnergy += int(7 * (factor / 1000))
+			factor = (factor * (.5))
+			// logrus.Infof("factor %f")
 		}
 
-		deltaEnergy -= (p.Age * p.Age * p.Age) / 20000
+		deltaEnergy -= (p.Age * p.Age) / 10000
 		p.Energy += deltaEnergy
 
 		logrus.Infof("delta energy: %d", deltaEnergy)
@@ -283,6 +287,9 @@ func (s *State) simulateTick() {
 			s.plantRelease(p.SpeciesId)
 			for _, t := range p.tiles {
 				s.SetTile(t, Tile{AirTile, nil})
+			}
+			for i := 0; i < 2; i++ {
+				s.AddSpore(Location{rand.Intn(500), 75}, p.SpeciesId)
 			}
 		} else {
 			surviving = append(surviving, p)

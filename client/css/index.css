@@ -7,24 +7,22 @@
     /*margin-bottom: 10px;*/
     /*background-color: #D1D0CE;*/
     border-style: solid;
-    border-radius: 3px;
-    border-color: #87AFC7;
+    border-radius: 999px;
+    border-color: #222;
+    text-align: center;
 }
 
-body{
-    background-color: #E6FFDB;
+body {
+    background-color: #151D28;
     margin: 0px;
-    padding: 0px;
-    padding-top: 50px;
+    /*padding: 10px;*/
+    /*padding-top: 50px;*/
 }
 
+* {
+    font-family: 'Nunito', sans-serif;
+}
 
-
-.full-width-container {
-    width: 90%;
-    max-width: 90%;
-    /*padding: 10px;*/
-    clear: both;
-    margin: 0 auto;
-    overflow: hidden;
+html {
+    overflow-x: hidden;
 }

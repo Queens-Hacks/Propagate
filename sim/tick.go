@@ -7,7 +7,6 @@ import (
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
-	"math/rand"
 )
 
 type Action struct {

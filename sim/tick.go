@@ -109,6 +109,8 @@ func (s *State) mkWorldState(rt *growthRoot) sandbox.WorldState {
 
 	ws.Energy = rt.Plant.Energy
 
+	ws.Age = rt.Plant.Age
+
 	return ws
 }
 

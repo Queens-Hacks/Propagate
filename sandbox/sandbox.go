@@ -12,6 +12,7 @@ import (
 type WorldState struct {
 	Lighting map[Direction]float64
 	Energy int
+	Age int
 }
 
 type StateChange int
@@ -332,6 +333,11 @@ func runNode(node internalNode) {
 
 	addVoidFunc(l, "get_energy", func(l *lua.State) int {
 		l.PushInteger(world.Energy)
+		return 1
+	})
+
+	addVoidFunc(l, "get_age", func(l *lua.State) int {
+		l.PushInteger(world.Age)
 		return 1
 	})
 

@@ -1,0 +1,30 @@
+#codex {
+    padding-top: 30px;
+}
+
+.card {
+    /*padding: 6px;*/
+    /*margin-bottom: 10px;*/
+    /*background-color: #D1D0CE;*/
+    border-style: solid;
+    border-radius: 3px;
+    border-color: #87AFC7;
+}
+
+body{
+    background-color: #E6FFDB;
+    margin: 0px;
+    padding: 0px;
+    padding-top: 50px;
+}
+
+
+
+.full-width-container {
+    width: 90%;
+    max-width: 90%;
+    /*padding: 10px;*/
+    clear: both;
+    margin: 0 auto;
+    overflow: hidden;
+}

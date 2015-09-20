@@ -215,7 +215,7 @@ function updateCodex() {
 
     var key = 0;
     for (key in state['plants']) {
-        codexString += "<div id='" + key + "' class='card three columns'><p> Color:\t" + state['plants'][key]['color'] + "<br></p><pre><code>" + state['plants'][key]['source'] + '</code></pre><p><br>Author:\t' + state['plants'][key]['author'] + "</p></div>";
+        codexString += "<div id='" + key + "'class='card two columns' style='background-color: " + husl.toHex(state['plants'][key]['color'], 70, 70) + "'><p><br><br>Author:\t" + state['plants'][key]['author'] + "</p></div>";
     }
     // console.log(codexString)
     codex.innerHTML = codexString;
@@ -228,13 +228,13 @@ function updateCodex() {
 function attachListeners(key) {
 
     document.getElementById(key).addEventListener("mouseover", function(event) {
-    	// console.log(key);
+        // console.log(key);
         selected = key;
 
     }, true);
 
     document.getElementById(key).addEventListener("mouseout", function(event) {
-    	// console.log("off");
+        // console.log("off");
 
         selected = "";
 

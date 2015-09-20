@@ -1,18 +1,17 @@
 <!doctype html>
 <html lang="">
-
-<head>
+  <head>
     <meta charset="utf-8">
-    <title>propagate</title>
+    <title>Propagate - A digital underwater ecosystem</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./css/index.css">
-    <link rel="stylesheet" href="./css/normalize.css">
-    <link rel="stylesheet" href="./css/skeleton.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/skeleton.css">
     <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet' type='text/css'>
-</head>
+  </head>
 
-<body>
+  <body>
     <canvas id="hidden" style="display:none;"></canvas>
     <canvas id="art"></canvas>
     <h3 id="errorLog"></h3>
@@ -20,5 +19,11 @@
         <div id="codex" class="row">
         </div>
     </div>
-    <script src="./build/main.js"></script>
-</body>
+
+    <script>
+      scale = 4;
+      var inEditMode = false;
+    </script>
+    <script src="/build/main.js"></script>
+  </body>
+</html>

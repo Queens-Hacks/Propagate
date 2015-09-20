@@ -48,8 +48,60 @@ func New(ctx context.Context, total, diff chan []byte, actions chan sim.Action, 
 		logrus.Infof("Closing websocket: %v", ws)
 	}
 
+	handleLocalWebSocket := func(ws *websocket.Conn) {
+		s := sim.NewState(500, 125)
+		actions := make(chan sim.Action)
+
+		species := s.AddSpecies(275, "", "Me")
+		s.AddSpore(sim.Location{0, 100}, species)
+
+		ss := s.StartSimulate(actions)
+		defer s.StopSimulate()
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		go func() {
+			// First send the starting state
+			ms := <-ss
+			err := websocket.Message.Send(ws, ms.State)
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			// Then send diffs
+			for {
+				select {
+				case ms := <-ss:
+					err := websocket.Message.Send(ws, ms.Diff)
+					if err != nil {
+						logrus.Error(err)
+					}
+					continue
+				case <-ctx.Done():
+				}
+				break
+			}
+		}()
+
+		for {
+			var a sim.Action
+			err := websocket.JSON.Receive(ws, &a)
+			if err == io.EOF {
+				cancel()
+				break
+			} else if err != nil {
+				logrus.Error(err)
+				break
+			}
+
+			logrus.Infof("Found a kind: %s", a.Kind)
+			actions <- a
+		}
+	}
+
 	go func() {
 		http.Handle("/global", websocket.Handler(handleWebSocket))
+		http.Handle("/local", websocket.Handler(handleLocalWebSocket))
 		// XXX SUPER SKETCH
 		http.Handle("/", http.FileServer(http.Dir("../client")))
 		err := http.ListenAndServe(port, nil)

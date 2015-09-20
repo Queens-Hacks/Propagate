@@ -7,6 +7,7 @@ import (
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
 	"github.com/Sirupsen/logrus"
+	"math/rand"
 )
 
 type Action struct {
@@ -23,6 +24,10 @@ type MarshalledState struct {
 	Diff  []byte
 }
 
+func (s *State) StopSimulate() {
+	// XXX TODO IMPLEMENT
+}
+
 // After calling this function it is no longer safe to do anything with s from
 // outside of the simulation
 func (s *State) StartSimulate(actions <-chan Action) <-chan MarshalledState {
@@ -31,6 +36,7 @@ func (s *State) StartSimulate(actions <-chan Action) <-chan MarshalledState {
 	go func() {
 		// We want to run the thing every 500 milliseconds
 		tick := time.NewTicker(time.Millisecond * 200)
+		defer tick.Stop()
 
 		for {
 			s.simulateTick()
@@ -94,6 +100,29 @@ func (s *State) handleAction(a *Action) {
 		}
 		loc := s.Clamp(&Location{a.X, a.Y})
 		s.AddSpore(loc, a.Species)
+	} else if a.Kind == "+species+spawn" {
+		color := a.Color
+		if color < 0 {
+			logrus.Warn("Color too small")
+			color = 0
+		}
+		if color > 360 {
+			logrus.Warn("Color too big")
+			color = 360
+		}
+		code := a.Code
+		if len(code) == 0 {
+			logrus.Warn("Ignored empty code property")
+			return
+		}
+		species := s.AddSpecies(color, code, "")
+
+		for i := 0; i < 10; i++ {
+			loc := Location{rand.Intn(s.Width()), 0}
+			logrus.Info(loc)
+			s.AddSpore(loc, species)
+			// XXX Instantly plant them sometimes
+		}
 	} else {
 		logrus.Warnf("Unrecognized kind %s", a.Kind)
 	}
@@ -118,12 +147,12 @@ func (s *State) mkWorldState(rt *growthRoot) sandbox.WorldState {
 func (s *State) Clamp(loc *Location) Location {
 	// Can't move there, it's out of bounds!
 	if loc.Y < 0 {
-		logrus.Info("newY out of bounds", loc.Y)
+		// logrus.Info("newY out of bounds", loc.Y)
 		loc.Y = 0
 	}
 
 	if loc.Y >= s.Height() {
-		logrus.Info("newY out of bounds", loc.Y)
+		// logrus.Info("newY out of bounds", loc.Y)
 		loc.Y = s.Height() - 1
 	}
 
@@ -199,7 +228,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		// that was easy
 		return
 	} else {
-		logrus.Warn("Unrecognized Operation")
+		// logrus.Warn("Unrecognized Operation")
 		root.cache = &in
 		return
 	}
@@ -266,7 +295,7 @@ func (s *State) simulateTick() {
 	s.diff.Spores = spores
 
 	surviving := make([]*Plant, 0, len(s.state.plants))
-	logrus.Infof("len of plants: %d", len(s.state.plants))
+	// logrus.Infof("len of plants: %d", len(s.state.plants))
 	for _, p := range s.state.plants {
 		deltaEnergy := 0
 		factor := 1000.0
@@ -279,7 +308,7 @@ func (s *State) simulateTick() {
 		deltaEnergy -= (p.Age * p.Age) / 10000
 		p.Energy += deltaEnergy
 
-		logrus.Infof("delta energy: %d", deltaEnergy)
+		// logrus.Infof("delta energy: %d", deltaEnergy)
 		if p.Energy < 0 {
 			for r := range p.roots {
 				s.HaltGrowth(r)

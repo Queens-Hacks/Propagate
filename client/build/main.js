@@ -10,11 +10,9 @@ var visCtx = visCan.getContext('2d');
 var hidCan = document.getElementById('hidden');
 var hidCtx = hidCan.getContext('2d');
 
-var scale = 4;
-
 var state = {
     world: [],
-    plants: {},
+    plants: {}
 };
 
 var spores = [];
@@ -36,7 +34,6 @@ var colorMap = [
     husl.toHex(210, 50, 50), //sky
     husl.toHex(160, 70, 70), //plant default
     husl.toHex(344, 70, 70) //spore
-
 ];
 
 var firstFrame = true;
@@ -51,10 +48,12 @@ function render() {
             drawTile(x, y, state.world[y][x]);
         }
     }
+
+    // Draw the spores
     for (var s = 0; s < spores.length; s++) {
         drawTile(spores[s]['location']['x'], spores[s]['location']['y'], {
             tileType: 3
-        })
+        });
     }
 
     display();
@@ -65,11 +64,9 @@ function display() {
     visCtx.fillRect(0, 0, visCan.width, visCan.height);
 
     visCtx.drawImage(hidCan, xViewport, 0);
-    if (xViewport > 0) {
-        visCtx.drawImage(hidCan, xViewport - worldWidth() * scale, 0);
-    } else {
-        visCtx.drawImage(hidCan, xViewport + worldWidth() * scale, 0);
-    }
+    visCtx.drawImage(hidCan, xViewport - worldWidth() * scale, 0);
+    visCtx.drawImage(hidCan, xViewport + worldWidth() * scale, 0);
+    visCtx.drawImage(hidCan, xViewport + worldWidth() * 2 * scale, 0);
 }
 
 function applyDelta(delta) {
@@ -92,21 +89,30 @@ function drawTile(x, y, tile) {
     if (tile['tileType'] == 0) {
         return;
     }
+
     if (tile['tileType'] == 2) {
         hidCtx.fillStyle = husl.toHex(state['plants'][tile['plant']['plantId']]['color'], 70, 70);
-        if (tile['plant']['plantId'] === selected)
-            hidCtx.fillStyle = '#fff'
-    } else hidCtx.fillStyle = colorMap[tile['tileType']];
-
+        if (tile['plant']['plantId'] === selected) {
+            hidCtx.fillStyle = '#fff';
+        }
+    } else {
+        hidCtx.fillStyle = colorMap[tile['tileType']];
+    }
 
     // XXX Do we want to do this without scaling, and scale when we copy to visctx?
     hidCtx.fillRect(x * scale, y * scale, scale, scale);
 }
 
-var ws = new WebSocket("ws://localhost:4444/global");
-window.__ws = ws;
+var ws;
+
+if (inEditMode) {
+    ws = new WebSocket("ws://localhost:4444/local");
+} else {
+    ws = new WebSocket("ws://localhost:4444/global");
+}
 
 ws.onmessage = function(evt) {
+    console.log("EVENT!");
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         var json = JSON.parse(reader.result);
@@ -122,7 +128,6 @@ ws.onmessage = function(evt) {
             applyDelta(json);
 
             render();
-
         }
     });
 
@@ -134,23 +139,22 @@ ws.onopen = function() {
 };
 
 ws.onclose = function() {
+    document.getElementById('errorLog').textContent = "disconnected from server";
+};
 
-    document.getElementById('errorLog').innerHTML = "disconnected from server"
-
-}
 window.onbeforeunload = function() {
     ws.onclose = function() {}; // disable onclose handler first
     ws.close();
-
 };
-
 
 function onResize() {
     visCtx = visCan.getContext('2d');
     hidCtx = hidCan.getContext('2d');
 
-    hidCan.width = worldWidth() * scale;
-    hidCan.height = worldHeight() * scale;
+    if (hidCan.width != worldWidth() * scale) {
+        hidCan.width = worldWidth() * scale;
+        hidCan.height = worldHeight() * scale;
+    }
 
     visCan.width = window.innerWidth;
     visCan.height = worldHeight() * scale;
@@ -167,8 +171,6 @@ window.addEventListener("resize", function(e) {
     runningResize = true;
     requestAnimationFrame(onResize);
 });
-
-// onResize();
 
 var dir = 1;
 var lastX = -1;
@@ -211,13 +213,11 @@ visCan.addEventListener('mouseup', function(e) {
 
 function updateCodex() {
     var codexString = "";
-    // console.log(Object.keys(state['plants']));
 
     var key = 0;
     for (key in state['plants']) {
         codexString += "<div id='" + key + "'class='card two columns' style='background-color: " + husl.toHex(state['plants'][key]['color'], 50, 50) + "'><p><br>Author:\t" + state['plants'][key]['author'] + "</p></div>";
     }
-    // console.log(codexString)
     codex.innerHTML = codexString;
 
     for (key in state['plants']) {
@@ -226,20 +226,27 @@ function updateCodex() {
 }
 
 function attachListeners(key) {
-
     document.getElementById(key).addEventListener("mouseover", function(event) {
-        // console.log(key);
         selected = key;
-
     }, true);
 
     document.getElementById(key).addEventListener("mouseout", function(event) {
-        // console.log("off");
-
         selected = "";
-
-
     }, true);
+}
+
+if (inEditMode) {
+    document.getElementById('test').addEventListener('click', function(e) {
+        e.preventDefault();
+        var v = JSON.stringify({
+            kind: "+species+spawn",
+            color: 123,
+            code: editor.getValue()
+        });
+        console.log(v);
+
+        ws.send(v);
+    });
 }
 
 },{"husl":2}],2:[function(require,module,exports){

@@ -294,7 +294,6 @@ func (s *State) simulateTick() {
 	s.diff.Spores = spores
 
 	surviving := make([]*Plant, 0, len(s.state.plants))
-	// logrus.Infof("len of plants: %d", len(s.state.plants))
 	for _, p := range s.state.plants {
 		deltaEnergy := 0
 		factor := 1000.0

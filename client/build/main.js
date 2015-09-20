@@ -99,7 +99,7 @@ function drawTile(x, y, tile) {
         }
     } else if (tile['tileType'] == 3) {
             // console.log(tile['plantId']);
-           hidCtx.fillStyle = husl.toHex((state['plants'][tile['plant']]['color']+50)%360, 65, 75);
+           hidCtx.fillStyle = husl.toHex((state['plants'][tile['plant']]['color']+90)%360, 65, 75);
 
 
     } else {

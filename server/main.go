@@ -28,6 +28,9 @@ function getdir(n)
    
 end
 
+grow("up")
+grow("up")
+grow("up")
 
 foo(8);
 `
@@ -80,19 +83,35 @@ end
 
 var crystal string = `
 while 1 do
+
   grow("up")
+  grow("up")
+  grow("up")
+  grow("up")
+
   split("up", "right")
+
   split("left", "left")
   split("right", "right")
 end
 `
+var coral string = `
 
-var twistyRight string = `
 while 1 do
+n=0
+ while math.random(10)>n do
+  grow("left")
+  grow("up")
+  n= n+1
+end
+n = 0
+while math.random(10)>n do
   grow("right")
   grow("up")
-  grow("up")
+n= n+1
 end
+end
+
 `
 
 var twistyLeft string = `
@@ -126,13 +145,6 @@ while 1 do
 end
 `
 
-var fearnRight string = `
-while 1 do
-    grow("up")
-end
-
-`
-
 var fearnLeft string = `
 while 1 do
   if meta() == "" then
@@ -161,17 +173,7 @@ func main() {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
-	species = s.AddSpecies(256, maxMemory, "Me")
-	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
-	}
-
 	species = s.AddSpecies(244, jakeRand, "Me")
-	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
-	}
-
-	species = s.AddSpecies(63, crystal, "Me")
 	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
@@ -181,13 +183,23 @@ func main() {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
-	species = s.AddSpecies(44, fearnRight, "Me")
-	for i := 0; i < 5; i++ {
+	species = s.AddSpecies(63, crystal, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(44, maxMemory, "Me")
+	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
 	species = s.AddSpecies(14, fearnLeft, "Me")
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(1, coral, "Me")
+	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
@@ -196,12 +208,7 @@ func main() {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 
-	species = s.AddSpecies(233, twistyLeft, "Me")
-	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
-	}
-
-	species = s.AddSpecies(333, twistyRight, "Me")
+	species = s.AddSpecies(300, twistyLeft, "Me")
 	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}

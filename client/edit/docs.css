@@ -1,0 +1,13 @@
+h1, h2, h3, p {
+  font-family: "Raleway","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif
+}
+
+h1 {
+  margin-top: 5px;
+}
+
+body {
+  color: #DDD;
+  padding: 10px 20px;
+  background-color: #222;
+}

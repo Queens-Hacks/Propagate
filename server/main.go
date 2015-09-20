@@ -8,23 +8,21 @@ import (
 	"golang.org/x/net/context"
 )
 
-var scripty string = `
-function randDir()
-	return "up"
-  -- d = math.random(3)
-  -- if d == 0 then return "right" end
-  -- if d == 1 then return "up" end
-  -- if d == 2 then return "left" end
-end
- 
+var twisty string = `
 while 1 do
-  grow(randDir())
-  grow(randDir())
-  split(randDir(), "right")
+  grow("right")
+  grow("up")
+  grow("up")
 end
 `
 
-var other_scripty string = `
+var upUp string = `
+while 1 do
+  grow("up")
+end
+`
+
+var fearnRight string = `
 while 1 do
   if meta() == "" then
     grow("up")
@@ -46,8 +44,19 @@ func main() {
 	actions := make(chan sim.Action)
 
 	s := sim.NewState(500, 125)
-	species := s.AddSpecies(128, other_scripty, "Me")
-	for i := 0; i < 100; i++ {
+
+	species := s.AddSpecies(128, upUp, "Me")
+	for i := 0; i < 20; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(44, fearnRight, "Me")
+	for i := 0; i < 20; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(275, twisty, "Me")
+	for i := 0; i < 20; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}
 

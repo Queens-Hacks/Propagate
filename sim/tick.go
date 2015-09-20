@@ -153,7 +153,11 @@ func (s *State) DirectionToLocation(loc Location, dir sandbox.Direction) Locatio
 func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 	new := root.Loc
 
-	if in.Operation == sandbox.Move {
+	energy := root.Plant.Energy
+
+	if in.Operation == sandbox.Move && energy > 200 {
+		root.cache = nil
+		root.Plant.Energy -= 100
 		new = s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(new).Type == PlantTile || s.GetTile(new).Type == DirtTile {
@@ -166,7 +170,9 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 			false,
 			root.Plant,
 		}})
-	} else if in.Operation == sandbox.Split {
+	} else if in.Operation == sandbox.Split && energy > 200 {
+		root.cache = nil
+		root.Plant.Energy -= 100
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(tmp).Type == PlantTile || s.GetTile(tmp).Type == DirtTile {
@@ -187,6 +193,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		return
 	} else {
 		logrus.Warn("Unrecognized Operation")
+		root.cache = &in
 		return
 	}
 
@@ -207,6 +214,9 @@ func (s *State) simulateTick() {
 
 	// Tell each root to run until the next move operation
 	for root := range s.state.roots {
+		if root.cache != nil {
+			continue
+		}
 		ch, ok := root.node.Update(s.mkWorldState(root))
 		if !ok {
 			// We have to remove the node later
@@ -229,6 +239,12 @@ func (s *State) simulateTick() {
 		s.applyChanges(response.root, newState)
 	}
 
+	for r := range s.state.roots {
+		if r.cache != nil {
+			s.applyChanges(r, *r.cache)
+		}
+	}
+
 	spores := []spore{}
 	for _, p := range s.diff.Spores {
 		// UpdateSpore returns true if it has planted the spore
@@ -247,12 +263,13 @@ func (s *State) simulateTick() {
 	for _, p := range s.state.plants {
 		deltaEnergy := 0
 		for _ = range p.tiles {
-			deltaEnergy += 10
+			deltaEnergy += 5
 		}
 
+		deltaEnergy -= (p.Age * p.Age * p.Age) / 20000
 		p.Energy += deltaEnergy
-		p.Energy -= (p.Age * p.Age)
 
+		logrus.Infof("delta energy: %d", deltaEnergy)
 		if p.Energy < 0 {
 			for r := range p.roots {
 				s.HaltGrowth(r)

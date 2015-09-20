@@ -20,6 +20,7 @@ type growthRoot struct {
 	Loc       Location
 	Plant     *Plant
 	node      *sandbox.Node
+	cache     *sandbox.NewState
 }
 
 type Location struct {
@@ -205,7 +206,7 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	node := sandbox.AddNode(species.Source, meta)
 
 	// Create the root node for the object, and append it to the roots list
-	root := growthRoot{plant.SpeciesId, loc, plant, node}
+	root := growthRoot{plant.SpeciesId, loc, plant, node, nil}
 	s.state.roots[&root] = struct{}{}
 	plant.roots[&root] = struct{}{}
 

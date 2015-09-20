@@ -209,6 +209,17 @@ func (s *State) SetTile(loc Location, new Tile) {
 	s.diff.TileDiffs = append(s.diff.TileDiffs, tileDiff{loc, new})
 }
 
+func (s *State) ClearPlants() {
+	for _, p := range s.state.plants {
+		for r := range p.roots {
+			s.HaltGrowth(r)
+		}
+		for _, t := range p.tiles {
+			s.SetTile(t, Tile{AirTile, nil})
+		}
+	}
+}
+
 func (s *State) AddPlant(speciesId string) *Plant {
 	s.plantAddRef(speciesId)
 	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, map[*growthRoot]struct{}{}}

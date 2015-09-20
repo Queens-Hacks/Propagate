@@ -98,7 +98,7 @@ func (s *State) handleAction(a *Action) {
 	}
 }
 
-func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
+func (s *State) mkWorldState(rt *growthRoot) sandbox.WorldState {
 	var ws sandbox.WorldState
 	ws.Lighting = map[sandbox.Direction]float64{}
 
@@ -106,6 +106,8 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	ws.Lighting[sandbox.Right] = 0
 	ws.Lighting[sandbox.Up] = 0
 	ws.Lighting[sandbox.Down] = 0
+
+	ws.Energy = rt.Plant.Energy
 
 	return ws
 }

@@ -11,6 +11,7 @@ import (
 
 type WorldState struct {
 	Lighting map[Direction]float64
+	Energy int
 }
 
 type StateChange int
@@ -327,6 +328,11 @@ func runNode(node internalNode) {
 	addVoidFunc(l, "terminate", func(l *lua.State) int {
 		updateEndTime(&end_time)
 		panic("this is normal, apparently")
+	})
+
+	addVoidFunc(l, "get_energy", func(l *lua.State) int {
+		l.PushInteger(world.Energy)
+		return 1
 	})
 
 	addDirStrFunc(l, "split", func(l *lua.State, d Direction, s string) int {

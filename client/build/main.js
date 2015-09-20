@@ -148,7 +148,11 @@ ws.onopen = function() {
 };
 
 ws.onclose = function() {
-    document.getElementById('logo').innerHTML = "disconnected from server...<small style='font-size: 50%; vertical-align: top;'>(sorry)</small>";
+    if (inEditMode) {
+        document.querySelector('#docs > iframe').contentDocument.body.innerHTML = "<h1>disconnected from server...<small style='font-size: 50%; vertical-align: top;'>(sorry)</small></h1>";
+    } else {
+        document.getElementById('logo').innerHTML = "disconnected from server...<small style='font-size: 50%; vertical-align: top;'>(sorry)</small>";
+    }
 };
 
 window.onbeforeunload = function() {

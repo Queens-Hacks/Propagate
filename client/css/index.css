@@ -1,5 +1,4 @@
 #codex {
-    padding-top: 30px;
     text-align: center;
 }
 
@@ -17,10 +16,6 @@ body {
     line-height: 0.5 !important;
 }
 
-* {
-    /* font-family: 'Nunito', sans-serif; */
-}
-
 html {
     overflow-x: hidden;
 }
@@ -28,7 +23,6 @@ html {
 .full-width-container {
     width: 90%;
     max-width: 90%;
-    /*padding: 10px;*/
     clear: both;
     margin: 0 auto;
     overflow: hidden;
@@ -44,4 +38,12 @@ html {
   line-height: inherit !important;
   color: #222;
   font-size: 160%;
+}
+
+#logo {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 0px;
+  text-align: center;
+  color: #ddd;
 }

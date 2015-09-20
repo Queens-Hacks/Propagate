@@ -49,7 +49,7 @@ func New(ctx context.Context, total, diff chan []byte, actions chan sim.Action, 
 	}
 
 	handleLocalWebSocket := func(ws *websocket.Conn) {
-		s := sim.NewState(500, 125)
+		s := sim.NewState(500, 62)
 		actions := make(chan sim.Action)
 
 		species := s.AddSpecies(275, "", "Me")

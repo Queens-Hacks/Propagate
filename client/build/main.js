@@ -140,7 +140,7 @@ ws.onopen = function() {
 };
 
 ws.onclose = function() {
-    document.getElementById('errorLog').textContent = "disconnected from server";
+    document.getElementById('logo').innerHTML = "disconnected from server...<small style='font-size: 50%; vertical-align: top;'>(sorry)</small>";
 };
 
 window.onbeforeunload = function() {

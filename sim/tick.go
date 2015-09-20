@@ -91,7 +91,7 @@ func (s *State) handleAction(a *Action) {
 		if !ok {
 			logrus.Warn("Non-existant species")
 		}
-		loc := boundsCheck(Location{a.X, a.Y}, s.Height(), s.Width())
+		loc := s.Clamp(&Location{a.X, a.Y})
 		s.AddSpore(loc, a.Species)
 	} else {
 		logrus.Warnf("Unrecognized kind %s", a.Kind)
@@ -110,26 +110,26 @@ func (s *State) mkWorldState(_ *growthRoot) sandbox.WorldState {
 	return ws
 }
 
-func boundsCheck(loc Location, mh int, mw int) Location {
+func (s *State) Clamp(loc *Location) Location {
 	// Can't move there, it's out of bounds!
 	if loc.Y < 0 {
 		logrus.Info("newY out of bounds", loc.Y)
 		loc.Y = 0
 	}
 
-	if loc.Y >= mh {
+	if loc.Y >= s.Height() {
 		logrus.Info("newY out of bounds", loc.Y)
-		loc.Y = mh - 1
+		loc.Y = s.Height() - 1
 	}
 
 	// loop around loop
 	if loc.X < 0 {
-		loc.X = mw + loc.X
-	} else if loc.X >= mw {
-		loc.X = loc.X - mw
+		loc.X = s.Width() + loc.X
+	} else if loc.X >= s.Width() {
+		loc.X = loc.X - s.Width()
 	}
 
-	return loc
+	return *loc
 }
 
 func (s *State) DirectionToLocation(loc Location, dir sandbox.Direction) Location {
@@ -145,7 +145,7 @@ func (s *State) DirectionToLocation(loc Location, dir sandbox.Direction) Locatio
 		new.Y += 1
 	}
 
-	new = boundsCheck(new, s.Height(), s.Width())
+	s.Clamp(&new)
 
 	return new // new looks good!
 }

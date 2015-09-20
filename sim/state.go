@@ -89,7 +89,7 @@ func (s *State) UpdateSpore(p *spore) bool {
 	p.Location.Y += dy
 	p.Location.X = (p.Location.X + s.Width()) % s.Width()
 
-	p.Location = boundsCheck(p.Location, s.Height(), s.Width())
+	s.Clamp(&p.Location)
 	t := s.GetTile(p.Location)
 	if t.Type == DirtTile {
 		p.Location.Y--
@@ -172,7 +172,7 @@ func (s *State) GetTile(loc Location) *Tile {
 // Set the tile at a location to a new tile
 func (s *State) SetTile(loc Location, new Tile) {
 	// XXX FIXME - this is a hack because we get index errors so often here...
-	loc = boundsCheck(loc, s.Height(), s.Width())
+	s.Clamp(&loc)
 
 	// Manage the addref and releases
 	old := s.GetTile(loc)

@@ -8,6 +8,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+var jakeRand string = `
+dir = "up"
+while 1 do
+	d = math.random(6)
+	if d == 0 then dir = "right" end 
+	if d == 1 then dir = "up" end 
+	if d == 2 then dir = "left" end 
+	grow(dir)
+	grow(dir)
+	grow(dir)
+end
+
+`
+
 var maxMemory string = `
 while 1 do
 	grow("up")
@@ -101,6 +115,11 @@ func main() {
 	s := sim.NewState(500, 125)
 
 	species := s.AddSpecies(256, maxMemory, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(244, jakeRand, "Me")
 	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}

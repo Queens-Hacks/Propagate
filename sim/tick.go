@@ -346,10 +346,10 @@ func (s *State) simulateTick() {
 			} else {
 				s.plantRelease(p.SpeciesId)
 				for _, t := range p.tiles {
-					s.SetTile(t, Tile{AirTile, nil})
 					if rand.Intn(100) > 90 {
 						s.AddSpore(p.tiles[t.str()], p.SpeciesId)
 					}
+					s.SetTile(t, Tile{AirTile, nil})
 				}
 
 			}

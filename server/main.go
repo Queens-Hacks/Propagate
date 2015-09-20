@@ -15,17 +15,17 @@ function foo (n)
           i= i+1
 	  grow(getdir(n))
 	  end
-      
+
       if n > 0 then return foo(n - 1) end
 end
 
-function getdir(n) 
+function getdir(n)
    v = n % 4
    if v == 0 then return "up" end
    if v == 1 then return "right" end
    if v == 2 then return "down" end
    if v == 3 then return "left" end
-   
+
 end
 
 grow("up")
@@ -54,17 +54,20 @@ end
 
 `
 var jakeRand string = `
-dir = "up"
-while 1 do
-	d = math.random(6)
-	if d == 0 then dir = "right" end 
-	if d == 1 then dir = "up" end 
-	if d == 2 then dir = "left" end 
-	grow(dir)
-	grow(dir)
-	grow(dir)
+local i = 10
+while i > 0 do
+  grow("up")
+  grow("up")
+  if math.random(2) == 1 then
+     grow("left")
+     grow("left")
+     split("left", "left")
+  else
+     grow("right")
+     grow("right")
+     split("right", "right")
+  end
 end
-
 `
 
 var maxMemory string = `

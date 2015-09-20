@@ -324,6 +324,11 @@ func runNode(node internalNode) {
 		return 0
 	})
 
+	addVoidFunc(l, "terminate", func(l *lua.State) int {
+		updateEndTime(&end_time)
+		panic("this is normal, apparently")
+	})
+
 	addDirStrFunc(l, "split", func(l *lua.State, d Direction, s string) int {
 		updateEndTime(&end_time)
 		var state NewState

@@ -72,13 +72,7 @@ end
 
 var fearnRight string = `
 while 1 do
-  if meta() == "" then
     grow("up")
-    grow("up")
-	split("right", "right")
-  else
-  	grow("right")
-  end
 end
 
 `

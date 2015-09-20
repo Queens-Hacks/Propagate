@@ -299,7 +299,7 @@ func (s *State) simulateTick() {
 		deltaEnergy := 0
 		factor := 1000.0
 		for _ = range p.tiles {
-			deltaEnergy += int(7 * (factor / 1000))
+			deltaEnergy += int(float64(2+p.Luck) * (factor / 1000))
 			factor = (factor * (.5))
 			// logrus.Infof("factor %f")
 		}

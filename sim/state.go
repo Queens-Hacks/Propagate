@@ -47,6 +47,7 @@ type Tile struct {
 type Plant struct {
 	Energy    int
 	Age       int
+	Luck      int
 	SpeciesId string
 	tiles     map[string]Location
 	roots     map[*growthRoot]struct{}
@@ -210,7 +211,7 @@ func (s *State) SetTile(loc Location, new Tile) {
 
 func (s *State) AddPlant(speciesId string) *Plant {
 	s.plantAddRef(speciesId)
-	plant := &Plant{100, 0, speciesId, map[string]Location{}, map[*growthRoot]struct{}{}}
+	plant := &Plant{100, 0, rand.Intn(6) + 1, speciesId, map[string]Location{}, map[*growthRoot]struct{}{}}
 	s.state.plants = append(s.state.plants, plant)
 	return plant
 }

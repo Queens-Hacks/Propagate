@@ -28,9 +28,9 @@ func NewState(width, height int) *State {
 		}
 
 		heightChange := rand.Float64()
-		if heightChange < 0.25 && dirtHeight < height {
+		if heightChange < 0.25 && dirtHeight < (height-10) {
 			dirtHeight++
-		} else if heightChange > 0.75 && dirtHeight > 0 {
+		} else if heightChange > 0.75 && dirtHeight > 10 {
 			dirtHeight--
 		}
 

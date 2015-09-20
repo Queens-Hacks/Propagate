@@ -2,6 +2,7 @@ package sim
 
 import (
 	"encoding/json"
+	"math/rand"
 	"time"
 
 	"github.com/Queens-Hacks/Propagate/sandbox"
@@ -284,6 +285,9 @@ func (s *State) simulateTick() {
 			s.plantRelease(p.SpeciesId)
 			for _, t := range p.tiles {
 				s.SetTile(t, Tile{AirTile, nil})
+			}
+			for i := 0; i < 2; i++ {
+				s.AddSpore(Location{rand.Intn(500), 75}, p.SpeciesId)
 			}
 		} else {
 			surviving = append(surviving, p)

@@ -8,6 +8,48 @@ import (
 	"golang.org/x/net/context"
 )
 
+var maxSpiral string = `
+function foo (n)
+	  i = 0
+	  while i<n do
+          i= i+1
+	  grow(getdir(n))
+	  end
+      
+      if n > 0 then return foo(n - 1) end
+end
+
+function getdir(n) 
+   v = n % 4
+   if v == 0 then return "up" end
+   if v == 1 then return "right" end
+   if v == 2 then return "down" end
+   if v == 3 then return "left" end
+   
+end
+
+
+foo(8);
+`
+var maxMeander string = `
+while 1 do
+
+	while math.random(10)<8 do
+		grow("up")
+	end
+	while math.random(10)<8 do
+		grow("left")
+	end
+	while math.random(10)<8 do
+		grow("up")
+	end
+	while math.random(10)<8 do
+		grow("right")
+	end
+
+end
+
+`
 var jakeRand string = `
 dir = "up"
 while 1 do
@@ -114,7 +156,12 @@ func main() {
 
 	s := sim.NewState(500, 125)
 
-	species := s.AddSpecies(256, maxMemory, "Me")
+	species := s.AddSpecies(256, maxMeander, "Me")
+	for i := 0; i < 10; i++ {
+		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+	}
+
+	species = s.AddSpecies(256, maxMemory, "Me")
 	for i := 0; i < 10; i++ {
 		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
 	}

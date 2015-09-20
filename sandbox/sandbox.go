@@ -2,17 +2,17 @@ package sandbox
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/Shopify/go-lua"
 	"github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
+	"math/rand"
+	"time"
 )
 
 type WorldState struct {
 	Lighting map[Direction]float64
-	Energy int
-	Age int
+	Energy   int
+	Age      int
 }
 
 type StateChange int
@@ -303,27 +303,27 @@ func runNode(node internalNode) {
 
 	l := lua.NewState()
 	var end_time time.Time
-	updateEndTime(&end_time)
 
 	world := <-node.resume
+	updateEndTime(&end_time)
 
 	addDirFunc(l, "grow", func(l *lua.State, d Direction) int {
-		updateEndTime(&end_time)
 		var state NewState
 		state.Dir = d
 		state.Operation = Move
 
 		world = respond(&node, state)
+		updateEndTime(&end_time)
 		return 0
 	})
 
 	addVoidFunc(l, "wait", func(l *lua.State) int {
-		updateEndTime(&end_time)
 		var state NewState
 		state.Dir = Undef
 		state.Operation = Wait
 
 		world = respond(&node, state)
+		updateEndTime(&end_time)
 		return 0
 	})
 
@@ -333,12 +333,12 @@ func runNode(node internalNode) {
 	})
 
 	addVoidFunc(l, "spawn", func(l *lua.State) int {
-		updateEndTime(&end_time)
 		var state NewState
 		state.Dir = Undef
 		state.Operation = Spawn
 
 		world = respond(&node, state)
+		updateEndTime(&end_time)
 		panic("Goodbye, thread")
 
 		return 0
@@ -355,18 +355,35 @@ func runNode(node internalNode) {
 	})
 
 	addDirStrFunc(l, "split", func(l *lua.State, d Direction, s string) int {
-		updateEndTime(&end_time)
 		var state NewState
 		state.Dir = d
 		state.Meta = s
 		state.Operation = Split
 
 		world = respond(&node, state)
+		updateEndTime(&end_time)
 		return 0
 	})
 
 	addDirFunc(l, "lighting", func(l *lua.State, d Direction) int {
 		l.PushNumber(world.Lighting[d])
+		return 1
+	})
+
+	addVoidFunc(l, "ran_dir", func(l *lua.State) int {
+		num := rand.Float64()
+		var dir string
+		if num < 0.25 {
+			dir = "left"
+		} else if num < 0.5 {
+			dir = "right"
+		} else if num < 0.75 {
+			dir = "up"
+		} else {
+			dir = "down"
+		}
+
+		l.PushString(dir)
 		return 1
 	})
 

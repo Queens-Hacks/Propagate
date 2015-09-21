@@ -174,49 +174,51 @@ func main() {
 
 	s := sim.NewState(500, 125)
 
+	spawnHeight := 50
+
 	species := s.AddSpecies(256, maxMeander, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(244, jakeRand, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(128, upUp, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(63, crystal, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(44, maxMemory, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(14, fearnLeft, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(1, coral, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(275, twistyUp, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	species = s.AddSpecies(300, twistyLeft, "Me")
 	for i := 0; i < 10; i++ {
-		s.AddSpore(sim.Location{rand.Intn(500), 75}, species)
+		s.AddSpore(sim.Location{rand.Intn(500), spawnHeight}, species)
 	}
 
 	port := ":4444"

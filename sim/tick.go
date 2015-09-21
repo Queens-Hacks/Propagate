@@ -214,7 +214,7 @@ func (s *State) applyChanges(root *growthRoot, in sandbox.NewState) {
 		}})
 	} else if in.Operation == sandbox.Split && energy > 200 {
 		root.cache = nil
-		root.Plant.Energy -= 75
+		root.Plant.Energy -= 50
 		tmp := s.DirectionToLocation(root.Loc, in.Dir)
 
 		if s.GetTile(tmp).Type == PlantTile || s.GetTile(tmp).Type == DirtTile {
@@ -253,6 +253,10 @@ type newStateInfo struct {
 	root *growthRoot
 }
 
+func shouldSpawnSpore() bool {
+	return rand.Intn(100) > 94
+}
+
 // This is called by a timer every n time units
 func (s *State) simulateTick() {
 	responses := []newStateInfo{}
@@ -277,18 +281,18 @@ func (s *State) simulateTick() {
 		delete(s.state.roots, dead)
 	}
 
+	for r := range s.state.roots {
+		if r.cache != nil {
+			s.applyChanges(r, *r.cache)
+		}
+	}
+
 	for _, response := range responses {
 		newState, ok := <-response.ch
 		if !ok {
 			continue
 		}
 		s.applyChanges(response.root, newState)
-	}
-
-	for r := range s.state.roots {
-		if r.cache != nil {
-			s.applyChanges(r, *r.cache)
-		}
 	}
 
 	spores := []spore{}
@@ -319,9 +323,15 @@ func (s *State) simulateTick() {
 
 		// logrus.Infof("delta energy: %d", deltaEnergy)
 		if p.Energy < 0 {
-			if p.terminal == false {
+			if !p.terminal {
+				firstRoot := true
 				for r := range p.roots {
 					s.HaltGrowth(r)
+
+					if firstRoot {
+						s.AddSpore(r.Loc, r.SpeciesId)
+						firstRoot = false
+					}
 				}
 				p.roots = map[*growthRoot]struct{}{}
 				p.terminal = true
@@ -338,7 +348,7 @@ func (s *State) simulateTick() {
 			if len(p.markedTiles) != 0 {
 
 				for _, t := range p.markedTiles {
-					if rand.Intn(100) > 90 {
+					if shouldSpawnSpore() {
 						s.AddSpore(p.tiles[t.str()], p.SpeciesId)
 					}
 					s.SetTile(t, Tile{AirTile, nil})
@@ -349,7 +359,7 @@ func (s *State) simulateTick() {
 			} else {
 				s.plantRelease(p.SpeciesId)
 				for _, t := range p.tiles {
-					if rand.Intn(100) > 90 {
+					if shouldSpawnSpore() {
 						s.AddSpore(p.tiles[t.str()], p.SpeciesId)
 					}
 					s.SetTile(t, Tile{AirTile, nil})

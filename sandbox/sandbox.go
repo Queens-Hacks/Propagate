@@ -401,4 +401,6 @@ func runNode(node internalNode) {
 	lua.LoadString(l, node.program)
 	openSafeLibs(l)
 	watchLuaThread(l, &end_time)
+
+	panic("done")
 }

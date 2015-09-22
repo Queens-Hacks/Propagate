@@ -32,7 +32,7 @@ func (l Location) str() string {
 	return fmt.Sprintf("%v", l)
 }
 
-type superPlusGoodTileStuff struct {
+type extraTileInfo struct {
 	SpeciesId string   `json:"plantId"`
 	Parent    Location `json:"parent"`
 	IsRoot    bool     `json:"isRoot"`
@@ -40,8 +40,8 @@ type superPlusGoodTileStuff struct {
 }
 
 type Tile struct {
-	Type  TileType                `json:"tileType"`
-	Extra *superPlusGoodTileStuff `json:"plant"`
+	Type  TileType       `json:"tileType"`
+	Extra *extraTileInfo `json:"plant"`
 }
 
 type Plant struct {
@@ -253,7 +253,7 @@ func (s *State) AddGrowth(loc Location, plant *Plant, meta string) *growthRoot {
 	}
 
 	// Set the tile at the base of the plant to a plant tile
-	s.SetTile(loc, Tile{PlantTile, &superPlusGoodTileStuff{plant.SpeciesId, loc, isUnderground, plant}})
+	s.SetTile(loc, Tile{PlantTile, &extraTileInfo{plant.SpeciesId, loc, isUnderground, plant}})
 
 	// Return a reference to the root node we previously appended
 	return &root

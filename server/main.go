@@ -85,18 +85,28 @@ end
 `
 
 var crystal string = `
-while 1 do
-
-  grow("up")
-  grow("up")
-  grow("up")
-  grow("up")
-
-  split("up", "right")
-
-  split("left", "left")
-  split("right", "right")
+function mrkv (a)
+    while  math.random(10)>5 do
+        grow("up")
+        grow(a)
+    end
 end
+
+if(meta()~="") then
+    mrkv(meta())
+end
+while 1 do
+	mrkv("up")
+	if(math.random(1,2)==1) then
+	    split("left","left")
+	else
+	    split("right","right")
+	end
+
+end
+
+
+
 `
 var coral string = `
 

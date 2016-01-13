@@ -6,7 +6,7 @@ a video:
 https://www.youtube.com/watch?v=iY813pT2Cxg
 
 currently hosted at:
-http://45.79.135.161/
+http://159.203.112.6:4444/
 
 more info...
 http://devpost.com/software/propagate

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"log"
 	"math/rand"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/Queens-Hacks/Propagate/sim"
 	"github.com/Sirupsen/logrus"
@@ -172,6 +176,9 @@ end
 `
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	logrus.SetLevel(logrus.WarnLevel)
 
